@@ -1,0 +1,4 @@
+{"t": 0.0, "level": "INFO", "node": "demo_safety_controller", "code": "DEMO_NAV_RUNNING", "message": "Navigating at 0.8 m/s."}
+{"t": 10.6, "level": "WARN", "node": "demo_safety_controller", "code": "DEMO_OBSTACLE_STOP_01", "message": "Synthetic obstacle entered the configured demo safety zone ahead (front distance below threshold)."}
+{"t": 11.3, "level": "INFO", "node": "demo_motion", "code": "DEMO_MOTION_HALTED", "message": "Velocity reached 0."}
+{"t": 20.4, "level": "INFO", "node": "demo_safety_controller", "code": "DEMO_OBSTACLE_CLEAR_01", "message": "Synthetic obstacle cleared from the configured demo safety zone."}

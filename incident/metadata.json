@@ -1,0 +1,45 @@
+{
+  "incident_id": "demo_obstacle_stop_01",
+  "title": "Synthetic obstacle-triggered safety stop",
+  "description": "Fully synthetic; does not reproduce any real incident or bag.",
+  "scenario_label": "Obstacle-triggered safety stop, inspired by common AMR failure patterns.",
+  "synthetic": true,
+  "modalities": [
+    "lidar",
+    "metrics",
+    "log"
+  ],
+  "robot": {
+    "id": "demo_bot_01",
+    "type": "demo_amr"
+  },
+  "frames": {
+    "map": "demo_map",
+    "odom": "demo_odom",
+    "base_link": "demo_base_link"
+  },
+  "duration_s": 25.0,
+  "demo_thresholds": {
+    "front_safety_m": 1.2
+  },
+  "synchronization": {
+    "default_max_skew_s": 0.2,
+    "relations": {
+      "lidar_distance": {
+        "max_skew_s": 0.2
+      },
+      "distance_stop_log": {
+        "min_delay_s": 0.0,
+        "max_delay_s": 0.3
+      }
+    }
+  },
+  "ground_truth": {
+    "root_cause": "A synthetic obstacle entered the configured demo safety zone ahead; front distance crossed the demo threshold and the safety controller commanded a stop.",
+    "primary_conclusion_id": "concl_obstacle_stop"
+  },
+  "media": {
+    "charts": "charts/",
+    "lidar_fps": 5
+  }
+}

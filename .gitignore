@@ -1,0 +1,15 @@
+# 真实 rosbag 绝不进版本控制(脱敏边界,见 non_sensitive.md)
+sample_data/
+*.bag
+*.db3
+*.mcap
+
+# 真 bag 仅供赛前人工理解 topic 形态;发布只允许合成 bag 及其导出资产
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 密钥绝不入库
+*.key
+.gemini_key

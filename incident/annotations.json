@@ -1,0 +1,124 @@
+{
+  "incident_id": "demo_obstacle_stop_01",
+  "evidence": [
+    {
+      "id": "ev_obstacle_lidar",
+      "modality": "lidar",
+      "t": 10.4,
+      "ref": "lidar_frames/1040.png",
+      "object_label": "obstacle",
+      "expected_observation": "A dense return cluster at ~0.74 m directly ahead of the robot."
+    },
+    {
+      "id": "ev_front_distance",
+      "modality": "metric",
+      "t": 10.5,
+      "ref": "charts/front_distance.png",
+      "object_label": "obstacle",
+      "expected_observation": "Front distance drops below the 1.2 m demo threshold.",
+      "metric": {
+        "name": "front_distance_m",
+        "value": 0.74
+      }
+    },
+    {
+      "id": "ev_stop_event",
+      "modality": "log",
+      "t": 10.6,
+      "ref": "logs.jsonl#DEMO_OBSTACLE_STOP_01",
+      "code": "DEMO_OBSTACLE_STOP_01",
+      "expected_observation": "Safety controller logged an obstacle stop event."
+    },
+    {
+      "id": "ev_velocity_halt",
+      "modality": "metric",
+      "t": 11.3,
+      "ref": "charts/velocity.png",
+      "expected_observation": "Planner still requests 0.80 m/s but applied command is clamped to 0 and actual velocity decelerates to 0.",
+      "metric": {
+        "name": "actual_speed_mps",
+        "value": 0.0
+      }
+    }
+  ],
+  "conclusions": [
+    {
+      "id": "concl_obstacle_stop",
+      "statement": "The robot stopped because an obstacle entered the demo safety zone ahead.",
+      "required_evidence": [
+        "ev_obstacle_lidar",
+        "ev_front_distance",
+        "ev_stop_event",
+        "ev_velocity_halt"
+      ],
+      "corroboration_groups": [
+        [
+          "ev_obstacle_lidar",
+          "ev_front_distance"
+        ]
+      ],
+      "temporal_checks": [
+        {
+          "before": "ev_front_distance",
+          "after": "ev_stop_event",
+          "min_delay_s": 0.0,
+          "max_delay_s": 0.3
+        },
+        {
+          "before": "ev_stop_event",
+          "after": "ev_velocity_halt",
+          "min_delay_s": 0.0,
+          "max_delay_s": 1.0
+        }
+      ],
+      "metric_checks": [
+        {
+          "name": "front_distance_m",
+          "op": "<",
+          "threshold": 1.2,
+          "evidence_id": "ev_front_distance"
+        },
+        {
+          "name": "actual_speed_mps",
+          "op": "<=",
+          "threshold": 0.01,
+          "evidence_id": "ev_velocity_halt"
+        }
+      ]
+    }
+  ],
+  "stateful_events": [
+    {
+      "code": "DEMO_OBSTACLE_STOP_01",
+      "kind": "assert",
+      "clears": "DEMO_OBSTACLE_CLEAR_01"
+    },
+    {
+      "code": "DEMO_OBSTACLE_CLEAR_01",
+      "kind": "clear"
+    }
+  ],
+  "recovery": {
+    "conditions": [
+      {
+        "id": "rc_obstacle_cleared",
+        "label": "Obstacle removed from safety zone",
+        "check": {
+          "metric": "front_distance_m",
+          "op": ">=",
+          "threshold": 1.2,
+          "aggregation": "continuous_at_end",
+          "duration_s": 1.0
+        }
+      },
+      {
+        "id": "rc_stop_cleared",
+        "label": "Obstacle-stop event cleared",
+        "check": {
+          "event_state": "DEMO_OBSTACLE_STOP_01",
+          "must_be": "cleared"
+        }
+      }
+    ]
+  }
+}
