@@ -37,7 +37,7 @@
 }
 ```
 
-- `synthetic: true` + `description` 必填,前端据此显示 "fully synthetic" 标注。公开 `description` **只写不复现真实事故/bag**,不提 error 105(连"不是 105"都不写,免得反而把 105 带出来)。场景措辞放 `scenario_label`,不含真实错误码。
+- `synthetic: true` + `description` 必填,前端据此显示 "fully synthetic" 标注。公开 `description` **只写不复现真实事故/bag**,不出现任何真实错误码或内部故障名称。场景措辞放 `scenario_label`,且只使用通用 AMR 术语。
 - `modalities` 固定为 `lidar / metrics / log`(无 camera)。
 - `demo_thresholds` 是**演示专用**阈值,不代表真实设备参数。
 - `primary_conclusion_id` 指向 `annotations.json` 里的主结论,demo 默认调查它。

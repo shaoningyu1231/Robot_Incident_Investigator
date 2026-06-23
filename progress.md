@@ -15,7 +15,7 @@ Hero demo 的主链路已经跑通：
 ### 数据与脱敏边界
 
 - Hero 使用全合成障碍物触发安全停车场景。
-- 不把 hero 称为 error 105，也不宣称复现任何真实事故或真实 bag。
+- Hero 不使用真实错误码或内部故障名称，也不宣称复现任何真实事故或真实 bag。
 - 真实 rosbag 不进入 `incident/`、Gemini 请求或发布资产。
 - 无相机数据；多模态输入由 LiDAR 渲染图、运动/距离曲线和结构化日志组成。
 - 脱敏与发布检查见 [non_sensitive.md](non_sensitive.md)。

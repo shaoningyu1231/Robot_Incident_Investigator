@@ -31,7 +31,7 @@
 不要只让 Gemini 回答"机器人为什么停了",而是让评委**亲自调查**:
 
 - hero 案例:**一个全合成的障碍物触发安全停车场景**(*A fully synthetic obstacle-triggered safety-stop scenario inspired by common AMR failure patterns*)。一个备用案例兜底,不做第三个。详见 [non_sensitive.md](non_sensitive.md):全合成数据,真实 rosbag 不进仓库 / 云端 / 演示设备 / Gemini 请求。
-  - **表述边界(必须守住)**:不把 hero 案例称为 error 105;不宣称它复现了任何真实 bag;统一用上面那句英文定性。
+  - **表述边界(必须守住)**:不使用任何真实错误码或内部故障名称;不宣称它复现了任何真实 bag;统一用上面那句英文定性。
   - **不用相机**:模态为 **LiDAR + 运动遥测 + 事件日志**。LiDAR 渲染图和速度/距离曲线本身就是 Gemini 的视觉输入,且贴合真实数据形态,系统边界更可靠(无需视觉模型识别物体)。
 - 播放同步时间轴:LiDAR 渲染图、距离/速度曲线、安全状态、事件日志。
 - 评委用自然语言提问,Gemini 自己决定调查哪个时间窗、调用工具提取多模态证据,最后给出根因 + 证据时间戳 + **`evidence_strength`(高/中/低,表证据完整性+一致性,非根因正确概率)** + 恢复前置条件。
@@ -103,7 +103,7 @@ Gemini 负责:决定调查哪个窗口 → 调 `inspect_incident_window` 取证 
 - **反事实调查**(单独的 stretch demo,**不进必演脚本**):"安全距离从 1.2m 调到 0.8m 会怎样?" —— 按距离曲线和规则生成预测,**明确标记为 simulation**。
 - **正常运行对比**:用同路线正常案例比命令/实际速度 / 前方距离 / safety 事件 / 日志差异。
 - **语音输入**:最后做,高风险低边际收益。
-- **未来扩展(口头带过即可)**:同一套调查工作流也支持诊断类急停(real err-105 = `diagnostic_emergency_stop`)和定位丢失 —— *The same investigation workflow also supports diagnostic emergency stops and localization failures.* hero 只演障碍停车这一条最直观的链。
+- **未来扩展(口头带过即可)**:同一套调查工作流也支持一般诊断急停和定位丢失 —— *The same investigation workflow also supports diagnostic emergency stops and localization failures.* hero 只演障碍停车这一条最直观的链。
 
 ---
 
@@ -177,7 +177,7 @@ LiDAR 近距离回波 → front_distance 跌破演示阈值 → safety 事件 as
 
 - 因果链直观,评委几秒就懂。
 - LiDAR、距离指标、安全状态、运动数据、日志能形成完整证据链。
-- 完整事件弧:正常 → 障碍触发 → 减速停车 → 障碍解除 → 恢复条件满足(真实 err-105 稳态 bag 没有这条弧)。
+- 完整事件弧:正常 → 障碍触发 → 减速停车 → 障碍解除 → 恢复条件满足。
 - 不需要相机 / 视觉模型,系统边界更可靠;明确 ground truth,降低幻觉。
 
 另准备 1 个备用案例(定位丢失或诊断急停),demo 翻车时切换用,不做第三个。
@@ -201,7 +201,7 @@ LiDAR 近距离回波 → front_distance 跌破演示阈值 → safety 事件 as
 - **hero 数据与规则层已完成**:合成 bag、固定资产、共享规则模块和篡改回归均已跑通。数据流水线当前为 `20/20 PASS`。
 - **后端与 Gemini 在线链路已完成**:真实 Gemini `gemini-2.5-flash` 在线验收为 `6/6 PASS`;Q1 调用事故窗口调查并提交 5 张 PNG,Q2 调用恢复条件检查,全程 HTTP 200、无 fallback。
 - **仍待完成**:前端演示体验打磨、真正连续的多轮会话、在线验收断言加固、现场 runbook 与多次彩排。备用案例仍是 stretch,不阻塞 hero demo。
-- **表述边界(阻塞项)**:hero 不叫 error 105、不宣称复现真实 bag,统一用 "fully synthetic obstacle-triggered safety-stop ... inspired by common AMR failure patterns"。
+- **表述边界(阻塞项)**:hero 不使用真实错误码或内部故障名称、不宣称复现真实 bag,统一用 "fully synthetic obstacle-triggered safety-stop ... inspired by common AMR failure patterns"。
 - **全合成、脱敏(阻塞项)**:真实 rosbag / 地图 / 人员影像 / 序列号 / 内部错误码 / 真实 topic 命名约定**不进仓库、云端、演示设备、Gemini 请求**;真 bag 仅供赛前人工理解 topic 形态。按 [non_sensitive.md](non_sensitive.md) 的 checklist 过一遍。
 - **网络 / API 失败预案**:后端已实现超时、429/500/503 退避和确定性离线回退;正式 demo 仍应至少保留一次真实 Gemini 调用,并在界面明确显示 `Online Gemini` 或 `Offline deterministic fallback`。
 - **Google Cloud 接入**:AI Studio 的 Gemini API key 起步最快(主办方描述里算合格接入);**Vertex AI 兜底**;现场领 credits,并口头跟主办方确认一句资格。

@@ -1,19 +1,23 @@
 # 合成 bag 生成 + 资产导出流程
 
-赛前一次性把 hero(+ 备用)案例做成固定资产。**现场后端只读导出的资产,不碰 bag、不解析 rosbag。** 合成 bag 的作用是"数据源是真 ROS bag、可信"的叙事 + 资产来源,不进运行链路。
+赛前一次性把 hero(+ 备用)案例做成固定资产。**现场后端只读导出的资产,不碰 bag、不解析 rosbag。** 合成 bag 用于证明数据链路采用 ROS 原生格式并生成可复现资产，不进入现场运行链路。
 
 数据策略与边界见 [non_sensitive.md](non_sensitive.md);资产字段见 [schema.md](schema.md)。
 
 ---
 
-## 真 bag 的用途(已完成的一步)
+## 场景设计来源与边界
 
-`sample_data/v63mp052_...err-105.bag` **仅供人工理解 topic 形态**,不进仓库/云端/Gemini。从它学到的、写进合成生成脚本的事实:
+Hero 只参考 AMR 行业中常见的抽象故障模式：障碍物进入演示安全区后，安全控制链路钳制运动命令并使机器人停车。公开仓库不记录任何真实 bag 文件名、内部 topic、私有消息类型、错误码或系统拓扑。
 
-- 真机 50 Hz 发这些遥测:`/safety_status`、逐方向 `/front_lidar_distance` 等(Float32)、`/stop_distances`(Float32MultiArray)、`/scan`(LaserScan)、`/cmd_vel_*`、`/wheel_velocity`、`/diff_drive_controller/odom`、`/current_state`(String)、`/error_codes`、`/emergency_stop_reason`(JSON String)。
-- 真实 err-105 = `diagnostic_emergency_stop`(诊断急停)+ 稳态,无事件弧 → 不适合 hero,故 hero 走**合成的障碍停车**,不叫 105。
+合成 bag 从零生成，只使用：
 
-合成 bag **仿照这些 topic 的形态**,但用 `demo_` 前缀 + 标准消息类型(避免拖进 `lexxauto_msgs` 自定义类型,也不复刻真实命名约定)。
+- 项目专用的 `demo_` topic、frame、节点和事件码。
+- ROS 标准消息类型。
+- 重新设计的虚构采样率、时间线、阈值和运动参数。
+- 完整且可解释的“正常 → 触发 → 停车 → 清除 → 恢复”事件弧。
+
+任何真实数据仅可在隔离环境中用于人工理解通用机器人行为，不得成为生成脚本输入，也不得进入仓库、云端、演示设备或 Gemini 请求。
 
 ---
 
