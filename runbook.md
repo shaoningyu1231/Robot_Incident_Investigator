@@ -41,7 +41,7 @@ GEMINI_API_KEY="$(cat ~/.gemini_key)" $V backend/online_check.py   # 期望 6/6
 
 ## 3. Demo 脚本(3 分钟核心闭环)
 
-1. 开场一句:*"When a robot stops, engineers dig through gigabytes. Watch anyone interrogate the incident."* 强调数据是 **fully synthetic, inspired by common AMR failure patterns**(不提 105、不说复现真 bag)。
+1. 开场一句:*"When a robot stops, engineers dig through gigabytes. Watch anyone interrogate the incident."* 强调数据是 **fully synthetic, inspired by common AMR failure patterns**(不提任何真实错误码、真实 bag、真实命名约定或内部系统细节)。
 2. 播放时间轴 → 机器人在 ~10.6s 停住。
 3. 输入 **"为什么停?"** → 实时进度(thinking → inspect_incident_window +5 images)→ 根因 + 证据时间戳 + `evidence_strength: high`。
 4. **点答案里的时间戳**(10.4/10.5/10.6/11.3)→ 时间轴跳转 + 证据卡高亮。强调"一键跳到证据"。

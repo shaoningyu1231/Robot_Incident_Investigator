@@ -64,6 +64,22 @@ for name, want, got, want_v, got_v, ok, es in rows:
     if not ok:
         print(f"    checks={es['checks']} conflicts={es.get('conflicts')}")
 print(f"--- {sum(1 for r in rows if r[5])}/{len(rows)} scenarios passed ---")
+
+# Hero recovery three-state — same obstacle hero, two evaluation windows (no new bag/assets).
+# Brings the recovery verdicts into the eval too, not only validate_incident.py.
+rec = []
+hero = R.Incident.load(EVAL / "obstacle_stop")
+for win, exp_state in [((12.0, 18.0), "blocked"), ((19.0, 25.0), "conditions_met")]:
+    got_state = R.check_recovery_readiness(hero, win)["recovery_readiness"]
+    rok = got_state == exp_state
+    rec.append((f"recovery {list(win)}", exp_state, got_state, rok))
+    allok &= rok
+print("=== hero recovery windows ===")
+for label, exp_state, got_state, rok in rec:
+    print(f"{label:24} expect={exp_state:16} got={got_state:16} {'PASS' if rok else 'FAIL'}")
+print(f"--- {sum(1 for r in rec if r[3])}/{len(rec)} recovery windows passed ---")
+
 print("Pitch is only truthful when green: evaluated across a confirmed obstacle stop (high), "
-      "a planned stop (true-negative, low), and conflicting sensor evidence (conflicting → insufficient).")
+      "a planned stop (true-negative, low), and conflicting sensor evidence (conflicting → insufficient); "
+      "recovery moves blocked → conditions_met as the obstacle clears.")
 sys.exit(0 if allok else 1)
