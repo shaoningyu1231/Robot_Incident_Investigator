@@ -129,8 +129,27 @@ def evidence_strength(inc, conclusion_id, window):
         level = "low"
     checks = {"required_present": required_present, "time_aligned": time_aligned,
               "labels_corroborate": labels_ok, "metrics_crossed": metrics_ok}
-    return {"conclusion_id": conclusion_id, "level": level, "checks": checks, "missing": missing,
-            "note": "Reflects evidence completeness and consistency, NOT probability the root cause is correct."}
+
+    # Conflict detection (distinct from "missing"): within a corroboration group, if >=2 members
+    # are BOTH present (in-window + asset exists + non-null label) and their labels explicitly
+    # disagree, the sensors contradict each other → verdict "conflicting". Mere absence is NOT a
+    # conflict (it stays "low" via required_present) — otherwise normal missing-evidence windows
+    # would be mislabelled.
+    conflicts = []
+    for grp in conc.get("corroboration_groups", []):
+        present = [ev[g] for g in grp
+                   if (start - EPS <= ev[g]["t"] <= end + EPS)
+                   and asset_exists(inc, ev[g])[0]
+                   and ev[g].get("object_label") is not None]
+        labels = sorted({m["object_label"] for m in present})
+        if len(present) >= 2 and len(labels) >= 2:
+            conflicts.append({"group": grp, "labels": labels})
+    verdict = "conflicting" if conflicts else "ok"
+
+    return {"conclusion_id": conclusion_id, "level": level, "verdict": verdict,
+            "conflicts": conflicts, "checks": checks, "missing": missing,
+            "note": "Reflects evidence completeness and consistency, NOT probability the root cause is correct. "
+                    "verdict='conflicting' means sensors explicitly contradict (maps to insufficient_evidence)."}
 
 
 # ---------- recovery ----------

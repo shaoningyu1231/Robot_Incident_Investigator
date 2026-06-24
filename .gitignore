@@ -10,6 +10,10 @@ sample_data/
 __pycache__/
 *.pyc
 
+# 多场景 eval 的中间产物(由 tools/eval_scenarios.py 确定性重建,不入库)
+eval_build/
+eval_incidents/
+
 # 密钥绝不入库
 *.key
 .gemini_key

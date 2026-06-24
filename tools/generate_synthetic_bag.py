@@ -112,10 +112,10 @@ def main():
                     TS.serialize_ros1(make_odom(t, seq, S.actual_speed(t)), topics["/demo/odom"]))
             w.write(conn["/demo/safety_state"], ns(t),
                     TS.serialize_ros1(String(data=S.safety_state(t)), topics["/demo/safety_state"]))
-        # 事件:assert / clear
-        for t, code, kind in [(S.T_STOP, S.CODE_STOP, "assert"), (S.T_CLEAR, S.CODE_CLEAR, "clear")]:
-            payload = json.dumps({"code": code, "kind": kind})
-            w.write(conn["/demo/error_events"], ns(t),
+        # events from scenario config (obstacle: assert/clear pair; planned: none)
+        for ev in S.EVENTS:
+            payload = json.dumps({"code": ev["code"], "kind": ev["kind"]})
+            w.write(conn["/demo/error_events"], ns(ev["t"]),
                     TS.serialize_ros1(String(data=payload), topics["/demo/error_events"]))
 
     size = out.stat().st_size

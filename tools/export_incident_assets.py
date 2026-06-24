@@ -122,11 +122,13 @@ def read_bag(bag_path):
 
 # ---------- 授权写死的 metadata / annotations(与场景对齐,见 schema.md)----------
 def metadata():
+    doc = S.DOC  # scenario-specific copy; absent → obstacle-hero defaults (keeps hero byte-identical)
     return {
         "incident_id": S.INCIDENT_ID,
-        "title": "Synthetic obstacle-triggered safety stop",
-        "description": "Fully synthetic; does not reproduce any real incident or bag.",
-        "scenario_label": "Obstacle-triggered safety stop, inspired by common AMR failure patterns.",
+        "title": doc.get("title", "Synthetic obstacle-triggered safety stop"),
+        "description": doc.get("description", "Fully synthetic; does not reproduce any real incident or bag."),
+        "scenario_label": doc.get("scenario_label",
+                                  "Obstacle-triggered safety stop, inspired by common AMR failure patterns."),
         "synthetic": True,
         "modalities": ["lidar", "metrics", "log"],
         "robot": {"id": "demo_bot_01", "type": "demo_amr"},
@@ -141,8 +143,9 @@ def metadata():
             },
         },
         "ground_truth": {
-            "root_cause": "A synthetic obstacle entered the configured demo safety zone ahead; "
-                          "front distance crossed the demo threshold and the safety controller commanded a stop.",
+            "root_cause": doc.get("root_cause",
+                                  "A synthetic obstacle entered the configured demo safety zone ahead; "
+                                  "front distance crossed the demo threshold and the safety controller commanded a stop."),
             "primary_conclusion_id": "concl_obstacle_stop",
         },
         "media": {"charts": "charts/", "lidar_fps": 5},
@@ -155,11 +158,11 @@ def annotations():
         "incident_id": S.INCIDENT_ID,
         "evidence": [
             {"id": "ev_obstacle_lidar", "modality": "lidar", "t": S.EV_LIDAR_T,
-             "ref": lidar_ref(S.EV_LIDAR_T), "object_label": "obstacle",
+             "ref": lidar_ref(S.EV_LIDAR_T), "object_label": S.LABELS.get("lidar", "obstacle"),
              "expected_observation": f"A dense return cluster at ~{S.front_distance(S.EV_LIDAR_T):.2f} m "
                                      f"directly ahead of the robot."},
             {"id": "ev_front_distance", "modality": "metric", "t": S.EV_DIST_T,
-             "ref": "charts/front_distance.png", "object_label": "obstacle",
+             "ref": "charts/front_distance.png", "object_label": S.LABELS.get("dist", "obstacle"),
              "expected_observation": f"Front distance drops below the {S.FRONT_SAFETY_M} m demo threshold.",
              "metric": {"name": "front_distance_m", "value": round(S.front_distance(S.EV_DIST_T), 3)}},
             {"id": "ev_stop_event", "modality": "log", "t": S.EV_STOP_T,
