@@ -4,124 +4,207 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Robot Incident Investigator</title>
+<!-- Roboto from Google Fonts; falls back to system-ui offline (no hard dependency). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* Material Design 3 visual language — dark "Google/Gemini" theme. Tokens only, no component library. */
   :root{
-    --bg:#0e1116; --panel:#161b22; --panel2:#1c232d; --line:#2a3441;
-    --ink:#e6edf3; --dim:#8b98a8; --accent:#4493f8; --ok:#2ea043; --warn:#d29922; --bad:#f85149;
-    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --bg:#0e0f11; --surface:#1c1d20; --surface-container:#26282c; --surface-hi:#303134;
+    --ink:#e3e3e3; --ink-variant:#bdc1c6; --outline:#5f6368; --outline-soft:#33353a;
+    --primary:#8ab4f8; --primary-ink:#062e6f; --primary-tonal:#1f3b66; --on-primary-tonal:#d3e3fd;
+    --ok:#81c995; --ok-tonal:#13321f; --warn-ink:#fcd569; --warn-tonal:#332a12;
+    --lidar:#8ab4f8; --lidar-tonal:#1f3b66; --metric:#81c995; --metric-tonal:#13321f;
+    --log:#fcd569; --log-tonal:#332a12;
+    --error:#f2b8b5; --error-tonal:#3a1715;
+    --r-card:20px; --r-pill:999px;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35);
+    --font:'Roboto','Google Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'Roboto Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-  header{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
-  header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
-  header .sub{color:var(--dim);font-size:12px}
-  .badge{margin-left:auto;font:12px var(--mono);padding:4px 10px;border-radius:999px;border:1px solid var(--line)}
-  .badge.online{color:#7ee787;border-color:#2ea04366;background:#1a2b1f}
-  .badge.offline{color:#f0c674;border-color:#d2992266;background:#2b2415}
-  .badge.neutral{color:var(--dim)}
-  main{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;padding:14px;max-width:1300px;margin:0 auto}
-  @media(max-width:900px){main{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:0 0 10px}
-  .lidarwrap{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
-  .lidarwrap img{width:300px;max-width:100%;background:#fff;border-radius:8px;border:1px solid var(--line)}
-  .readout{font:12.5px var(--mono);color:var(--dim);min-width:180px}
-  .readout b{color:var(--ink)}
-  .chartwrap{position:relative;margin:10px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 var(--font)}
+  svg{display:block}
+  /* ---- App bar (Google Cloud style) ---- */
+  .appbar{display:flex;align-items:center;gap:14px;padding:12px 24px;background:var(--surface);
+          border-bottom:1px solid var(--outline-soft);position:sticky;top:0;z-index:10}
+  .logo{width:34px;height:34px;border-radius:10px;background:var(--primary-tonal);color:var(--primary);
+        display:grid;place-items:center}
+  .appbar .titles{display:flex;flex-direction:column;line-height:1.2}
+  .appbar h1{font-size:16px;margin:0;font-weight:500}
+  .appbar .sub{font-size:12px;color:var(--ink-variant)}
+  .chip{display:inline-flex;align-items:center;gap:6px;font:500 12.5px var(--font);
+        padding:6px 12px;border-radius:var(--r-pill);border:1px solid transparent}
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .chip.online{background:var(--ok-tonal);color:var(--ok)}
+  .chip.offline{background:var(--warn-tonal);color:var(--warn-ink)}
+  .chip.neutral{background:var(--surface-container);color:var(--ink-variant)}
+  .chip.avail{background:var(--surface-container);color:var(--ink-variant)}
+  .chip.avail .dot{background:var(--ok)}
+  .spacer{margin-left:auto}
+  /* ---- Layout ---- */
+  main{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;padding:18px 24px;max-width:1360px;margin:0 auto}
+  @media(max-width:980px){main{grid-template-columns:1fr}}
+  .col{display:flex;flex-direction:column;gap:18px}
+  .panel{background:var(--surface);border:1px solid var(--outline-soft);border-radius:var(--r-card);
+         box-shadow:var(--shadow);padding:18px}
+  .phead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .phead .pic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+              background:var(--surface-container);color:var(--primary)}
+  .phead h2{font-size:14px;font-weight:500;margin:0}
+  .phead .hint{font-size:11.5px;color:var(--ink-variant);margin-left:auto}
+  /* ---- Timeline ---- */
+  .lidarwrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  .lidarwrap img{width:300px;max-width:100%;background:#fff;border-radius:14px;border:1px solid var(--outline-soft)}
+  .readout{font:13px var(--mono);color:var(--ink-variant);min-width:190px}
+  .readout b{color:var(--ink);font-weight:500}
+  .chartwrap{position:relative;margin:12px 0;border:1px solid var(--outline-soft);border-radius:14px;overflow:hidden;background:#fff}
   .chartwrap img{display:block;width:100%}
-  .cursor{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);box-shadow:0 0 6px var(--accent);pointer-events:none}
-  .controls{display:flex;align-items:center;gap:12px;margin-top:8px}
-  .controls input[type=range]{flex:1}
-  button{font:13px system-ui;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:7px 12px;cursor:pointer}
-  button:hover{border-color:var(--accent)}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#04101f;font-weight:600}
-  .tnow{font:13px var(--mono);color:var(--accent);min-width:64px;text-align:right}
-  textarea{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;font:13px system-ui;resize:vertical;min-height:54px}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-  .chip{font:11.5px var(--mono);padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--dim);cursor:pointer}
-  .chip:hover{border-color:var(--accent);color:var(--ink)}
-  .chip.tool{color:#7ee787;border-color:#2ea04344;cursor:default}
-  .answer{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;font-size:13.5px;min-height:40px}
-  .answer code{font:12.5px var(--mono);background:#0b0f14;padding:1px 5px;border-radius:4px}
-  .ev{display:flex;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:7px;margin-bottom:6px;cursor:pointer}
-  .ev:hover{border-color:var(--accent)}
-  .ev .t{font:12px var(--mono);color:var(--accent);min-width:48px}
-  .ev .mod{font:10.5px var(--mono);color:var(--dim);text-transform:uppercase}
-  .meta{font-size:11.5px;color:var(--dim);margin-top:6px}
-  .seek{display:flex;gap:8px;margin-top:8px}
-  .seek button{flex:1;font-size:12px}
-  .note{font-size:11px;color:var(--dim);margin-top:8px}
-  .imgcount{font:11px var(--mono);color:var(--dim)}
-  .tlink{color:var(--accent);text-decoration:underline dotted;cursor:pointer}
-  .ev.hot{border-color:var(--accent);background:#10243f;box-shadow:0 0 0 1px var(--accent) inset}
-  .markers{position:relative;height:18px;margin:2px 0 -2px}
-  .marker{position:absolute;top:0;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;
-          background:var(--panel2);border:1px solid var(--accent);cursor:pointer}
-  .marker.stop{background:var(--bad);border-color:var(--bad)}
-  .marker:hover{transform:translateX(-50%) scale(1.3)}
-  .evline{position:absolute;top:0;bottom:0;width:1px;background:#4493f855;pointer-events:none}
-  .evline.stop{background:#f8514955}
-  button:disabled{opacity:.45;cursor:not-allowed;border-color:var(--line)}
-  button.cancel{border-color:var(--bad);color:#ff9b94}
-  .retry{color:var(--accent);text-decoration:underline;cursor:pointer}
-  .spin{display:inline-block;animation:bl 1s steps(3,end) infinite;width:1.2em}
-  @keyframes bl{0%{content:''}}
+  .cursor{position:absolute;top:0;bottom:0;width:2px;background:var(--primary);box-shadow:0 0 6px rgba(11,87,208,.5);pointer-events:none}
+  .evline{position:absolute;top:0;bottom:0;width:1px;background:rgba(11,87,208,.30);pointer-events:none}
+  .evline.stop{background:rgba(179,38,30,.35)}
+  .controls{display:flex;align-items:center;gap:12px;margin-top:10px}
+  .controls input[type=range]{flex:1;accent-color:var(--primary)}
+  .tnow{font:500 13px var(--mono);color:var(--primary);min-width:62px;text-align:right}
+  .markers{position:relative;height:18px;margin:4px 0 -2px}
+  .marker{position:absolute;top:0;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;
+          background:var(--surface);border:2px solid var(--primary);cursor:pointer}
+  .marker.stop{border-color:var(--error);background:var(--error-tonal)}
+  .marker:hover{transform:translateX(-50%) scale(1.25)}
+  /* ---- Buttons (M3 pill) ---- */
+  button{display:inline-flex;align-items:center;gap:7px;font:500 13px var(--font);cursor:pointer;
+         border-radius:var(--r-pill);padding:9px 16px;border:1px solid var(--outline);
+         background:var(--surface);color:var(--ink)}
+  button:hover{background:var(--surface-container)}
+  button.primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+  button.primary:hover{filter:brightness(1.06)}
+  button.tonal{background:var(--primary-tonal);color:var(--on-primary-tonal);border-color:transparent}
+  button.cancel{background:var(--error-tonal);color:var(--error);border-color:transparent}
+  button:disabled{opacity:.45;cursor:not-allowed;background:var(--surface)}
+  button svg{width:18px;height:18px}
+  /* ---- Investigator ---- */
+  textarea{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--outline);
+           border-radius:14px;padding:12px 14px;font:14px var(--font);resize:vertical;min-height:56px}
+  textarea:focus{outline:2px solid var(--primary-tonal);border-color:var(--primary)}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .meta-line{font:11.5px var(--mono);color:var(--ink-variant);margin-top:8px}
+  .answer{background:var(--surface-container);border-radius:14px;padding:14px;white-space:pre-wrap;
+          font-size:13.7px;line-height:1.6;min-height:44px;margin-top:10px}
+  .answer code{font:12.5px var(--mono);background:var(--surface-hi);border:1px solid var(--outline-soft);padding:1px 5px;border-radius:5px}
+  .tlink{color:var(--primary);text-decoration:underline dotted;cursor:pointer;font-weight:500}
+  .retry{color:var(--primary);text-decoration:underline;cursor:pointer;font-weight:500}
+  /* ---- Tool stepper (vertical) ---- */
+  .stepper{position:relative;margin:12px 0 0;padding-left:26px}
+  .stepper:before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--outline-soft)}
+  .step{position:relative;padding:6px 0;display:flex;align-items:center;gap:8px;color:var(--ink-variant);font-size:12.5px}
+  .step .sdot{position:absolute;left:-26px;width:20px;height:20px;border-radius:50%;background:var(--primary-tonal);
+              color:var(--primary);display:grid;place-items:center;border:2px solid var(--surface)}
+  .step .sdot svg{width:12px;height:12px}
+  .step b{color:var(--ink);font-weight:500}
+  .step.seekable{cursor:pointer}
+  .step.seekable:hover b{color:var(--primary)}
+  /* ---- Evidence status cards ---- */
+  .evgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:560px){.evgrid{grid-template-columns:1fr}}
+  .ev{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border-radius:14px;cursor:pointer;
+      border:1px solid var(--outline-soft);background:var(--surface);transition:.12s}
+  .ev:hover{box-shadow:var(--shadow)}
+  .ev.hot{outline:2px solid var(--primary);background:var(--primary-tonal)}
+  .ev .eicon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
+  .ev.lidar .eicon{background:var(--lidar-tonal);color:var(--lidar)}
+  .ev.metric .eicon{background:var(--metric-tonal);color:var(--metric)}
+  .ev.log .eicon{background:var(--log-tonal);color:var(--log)}
+  .ev .etxt{min-width:0}
+  .ev .ettl{font-weight:500;font-size:12.5px}
+  .ev .esub{font:11px var(--mono);color:var(--ink-variant)}
+  .ev .et{font:600 12px var(--mono);color:var(--primary)}
+  .gt{font-size:11.5px;color:var(--ink-variant);margin-top:12px;padding-top:10px;border-top:1px solid var(--outline-soft)}
 </style>
 </head>
 <body>
-<header>
-  <h1>Robot Incident Investigator</h1>
-  <span class="sub" id="scenario"></span>
-  <span class="badge neutral" id="modeBadge">Gemini: …</span>
+<header class="appbar">
+  <div class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4zm0 5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm0 12c-2 0-3.8-1-4.8-2.5.1-1.6 3.2-2.5 4.8-2.5s4.7.9 4.8 2.5C15.8 18 14 19 12 19z"/></svg></div>
+  <div class="titles"><h1>Robot Incident Investigator</h1><span class="sub" id="scenario"></span></div>
+  <span class="spacer"></span>
+  <span class="chip neutral" id="modeBadge"><span class="dot"></span>Gemini: …</span>
 </header>
 
 <main>
-  <section>
-    <div class="card">
-      <h2>Synchronized timeline</h2>
-      <div class="lidarwrap">
-        <img id="lidar" alt="LiDAR scan">
-        <div class="readout" id="readout"></div>
-      </div>
-      <div class="markers" id="markers"></div>
-      <div class="controls">
-        <button id="play">▶ Play</button>
-        <button id="jump">⤓ Jump to stop</button>
-        <input type="range" id="scrub" min="0" max="25" step="0.1" value="0">
-        <span class="tnow" id="tnow">0.0s</span>
-      </div>
-      <div id="charts"></div>
+  <!-- Incident Timeline -->
+  <section class="panel">
+    <div class="phead">
+      <span class="pic" id="ic-timeline"></span><h2>Incident Timeline</h2>
+      <span class="hint">play · scrub · jump to evidence</span>
     </div>
+    <div class="lidarwrap">
+      <img id="lidar" alt="LiDAR scan">
+      <div class="readout" id="readout"></div>
+    </div>
+    <div class="markers" id="markers"></div>
+    <div class="controls">
+      <button id="play"></button>
+      <button id="jump" class="tonal"></button>
+      <input type="range" id="scrub" min="0" max="25" step="0.1" value="0">
+      <span class="tnow" id="tnow">0.0s</span>
+    </div>
+    <div id="charts"></div>
   </section>
 
-  <section>
-    <div class="card">
-      <h2>Interrogate the incident</h2>
-      <textarea id="q" placeholder="e.g. Why did the robot stop? / What must be satisfied before it can resume?"></textarea>
-      <div class="seek">
-        <button data-q="Why did the robot stop? Inspect the incident and cite the evidence timestamps.">为什么停?</button>
-        <button data-q="Before resuming from that stop, what conditions must be satisfied right now?">恢复条件?</button>
+  <div class="col">
+    <!-- Gemini Investigator -->
+    <section class="panel">
+      <div class="phead">
+        <span class="pic" id="ic-invest"></span><h2>Gemini Investigator</h2>
+        <span class="hint" id="turns"></span>
+      </div>
+      <textarea id="q" placeholder="Ask about the incident — e.g. why did the robot stop? / what must be satisfied before it can resume?"></textarea>
+      <div class="actions">
+        <button data-q="Why did the robot stop? Inspect the incident around the stop and cite the evidence timestamps." class="tonal">Why did it stop?</button>
+        <button data-q="Before resuming from that stop, what conditions must be satisfied right now?" class="tonal">Recovery conditions?</button>
         <button class="primary" id="ask">Ask</button>
-        <button class="cancel" id="cancel" style="display:none">■ Cancel</button>
-        <button id="reset" title="清空多轮上下文">↺ New</button>
+        <button class="cancel" id="cancel" style="display:none">Cancel</button>
+        <button id="reset" title="Clear multi-turn context">New</button>
       </div>
-      <div class="imgcount" id="turns"></div>
-      <div class="chips" id="tools"></div>
-      <div class="imgcount" id="imgcount"></div>
-      <div class="answer" id="answer">Ask a question to investigate. Online uses Gemini multimodal; if unavailable it falls back to a deterministic offline answer (badge shows which).</div>
-    </div>
+      <div class="meta-line" id="imgcount"></div>
+      <div class="stepper" id="tools" style="display:none"></div>
+      <div class="answer" id="answer">Ask a question to investigate. Online uses Gemini multimodal; if it is unavailable the agent falls back to a deterministic offline answer (the badge shows which).</div>
+    </section>
 
-    <div class="card" style="margin-top:14px">
-      <h2>Evidence — click to seek</h2>
-      <div id="evidence"></div>
-      <div class="note" id="gt"></div>
-    </div>
-  </section>
+    <!-- Evidence Workspace -->
+    <section class="panel">
+      <div class="phead">
+        <span class="pic" id="ic-evidence"></span><h2>Evidence Workspace</h2>
+        <span class="hint">click a card to seek</span>
+      </div>
+      <div class="evgrid" id="evidence"></div>
+      <div class="gt" id="gt"></div>
+    </section>
+  </div>
 </main>
 
 <script>
-// 图表绘制时的画布几何(须与 tools/export_incident_assets.py 的 _plot 一致)
-const PLOT = {W:560, ML:60, MR:16};
+// ---- Inline SVG icons (offline-safe; no icon font dependency) ----
+const P = d => `<svg viewBox="0 0 24 24" fill="currentColor">${d}</svg>`;
+const ICONS = {
+  play: P('<path d="M8 5v14l11-7z"/>'),
+  pause: P('<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'),
+  jump: P('<path d="M11 3h2v10h3l-4 4-4-4h3zM5 19h14v2H5z"/>'),
+  send: P('<path d="M3 20l18-8L3 4v6l13 2-13 2z"/>'),
+  close: P('<path d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 5.7 18.3 4.3 16.9 10.6 12 4.3 5.7l1.4-1.4L10.6 10.6 16.9 4.3z"/>'),
+  refresh: P('<path d="M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/>'),
+  search: P('<path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>'),
+  chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l6 6 4-4 8 8"/></svg>`,
+  article: P('<path d="M5 3h14v18H5zm2 4h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/>'),
+  recovery: P('<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-2 15-5-5 1.4-1.4L10 14.2l7.6-7.6L19 8z"/>'),
+  lidar: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="2" d="M12 5a7 7 0 0 1 7 7M12 8.5a3.5 3.5 0 0 1 3.5 3.5"/></svg>`,
+  spark: P('<path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z"/>'),
+  evidence: P('<path d="M9 3h6l1 2h4v2H4V5h4zM5 8h14l-1 13H6z"/>'),
+};
+function icon(name){ return ICONS[name] || ''; }
+const TOOL_ICON = {inspect_incident_window:'search', check_recovery_readiness:'recovery', search_logs:'article'};
+const MOD_ICON = {lidar:'lidar', metric:'chart', log:'article'};
+
+const PLOT = {W:560, ML:60, MR:16};  // must match tools/export_incident_assets.py _plot geometry
 const DUR = 25;
 let TL=null, ANN=null, META=null, lidar=[], metrics=[], playing=false, timer=null, STOP_T=10.6, HIST=[];
 
@@ -129,22 +212,19 @@ const $ = s => document.querySelector(s);
 const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function fmtAnswer(t){
   let h = esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
-  // 把 "10.6s" / "t=10.6" 这类时间戳变成可点击链接(只匹配秒,不碰 1.2m / 0.74m)
+  // Turn timestamps like "10.6s" / "t=10.6" into clickable links (seconds only; never 1.2m / 0.74m).
   h = h.replace(/\b(?:t=)?(\d{1,2}(?:\.\d+)?)\s*s\b/g,
                 (m,n)=>`<span class="tlink" data-t="${n}">${m}</span>`);
   return h;
 }
-function cursorPct(t){ // t -> 占图片宽度的百分比
-  const x0=PLOT.ML, x1=PLOT.W-PLOT.MR;
-  return (x0 + (t/DUR)*(x1-x0)) / PLOT.W * 100;
-}
-function nearest(arr, t){
-  let best=arr[0], bd=1e9;
-  for(const m of arr){ const d=Math.abs(m.t-t); if(d<bd){bd=d;best=m;} }
-  return best;
-}
+function cursorPct(t){ const x0=PLOT.ML, x1=PLOT.W-PLOT.MR; return (x0+(t/DUR)*(x1-x0))/PLOT.W*100; }
+function nearest(arr,t){ let b=arr[0],bd=1e9; for(const m of arr){const d=Math.abs(m.t-t); if(d<bd){bd=d;b=m;}} return b; }
 
 async function boot(){
+  // panel + control icons
+  $('#ic-timeline').innerHTML=icon('chart'); $('#ic-invest').innerHTML=icon('spark'); $('#ic-evidence').innerHTML=icon('evidence');
+  $('#ask').innerHTML=icon('send')+'Ask'; $('#cancel').innerHTML=icon('close')+'Cancel'; $('#reset').innerHTML=icon('refresh')+'New';
+  setPlayBtn();
   const h = await (await fetch('/health')).json();
   setBadge(h.gemini ? 'avail' : 'nokey');
   const inc = await (await fetch('/incident')).json();
@@ -153,38 +233,33 @@ async function boot(){
   metrics=[...TL.tracks.metrics].sort((a,b)=>a.t-b.t);
   $('#scenario').textContent = META.scenario_label || '';
   $('#gt').textContent = 'Ground truth: ' + META.ground_truth.root_cause;
-  // 事故停车时刻(用于 jump 按钮 + 红色 marker)
-  const stopEv = ANN.evidence.find(e=>e.id==='ev_stop_event') ||
-                 ANN.evidence.find(e=>e.modality==='log');
+  const stopEv = ANN.evidence.find(e=>e.id==='ev_stop_event') || ANN.evidence.find(e=>e.modality==='log');
   if(stopEv) STOP_T = stopEv.t;
-  $('#jump').textContent = `⤓ Jump to stop (${STOP_T.toFixed(1)}s)`;
-  // charts:每张图叠加证据竖线 + 游标
+  $('#jump').innerHTML = icon('jump') + `Jump to stop (${STOP_T.toFixed(1)}s)`;
+  // charts with evidence lines + cursor
   const cw = $('#charts');
   for(const c of TL.tracks.charts){
     const w=document.createElement('div'); w.className='chartwrap';
-    let lines='';
-    for(const e of ANN.evidence)
-      lines+=`<div class="evline${e.id===(stopEv&&stopEv.id)?' stop':''}" style="left:${cursorPct(e.t)}%"></div>`;
-    w.innerHTML = `<img src="/media/${c.ref}" alt="${c.kind}">${lines}<div class="cursor" data-c></div>`;
+    let lines=''; for(const e of ANN.evidence)
+      lines+=`<div class="evline${stopEv&&e.id===stopEv.id?' stop':''}" style="left:${cursorPct(e.t)}%"></div>`;
+    w.innerHTML=`<img src="/media/${c.ref}" alt="${c.kind}">${lines}<div class="cursor" data-c></div>`;
     cw.appendChild(w);
   }
-  // evidence 列表
+  // evidence status cards
   const ev=$('#evidence');
   for(const e of ANN.evidence){
-    const d=document.createElement('div'); d.className='ev'; d.dataset.t=e.t; d.title=e.expected_observation||'';
-    d.innerHTML=`<span class="t">${e.t.toFixed(1)}s</span><span>${e.id}</span><span class="mod">${e.modality}</span>`;
-    d.onclick=()=>seek(e.t);
-    ev.appendChild(d);
+    const d=document.createElement('div'); d.className='ev '+e.modality; d.dataset.t=e.t; d.title=e.expected_observation||'';
+    d.innerHTML=`<span class="eicon">${icon(MOD_ICON[e.modality]||'article')}</span>`+
+      `<span class="etxt"><div class="ettl">${e.id.replace(/^ev_/,'').replace(/_/g,' ')}</div>`+
+      `<div class="esub">${e.modality} · <span class="et">${e.t.toFixed(1)}s</span></div></span>`;
+    d.onclick=()=>seek(e.t); ev.appendChild(d);
   }
-  // 时间轴上方证据 markers(可点击)
+  // timeline evidence markers
   const mk=$('#markers');
   for(const e of ANN.evidence){
-    const dot=document.createElement('div');
-    dot.className='marker'+(stopEv&&e.id===stopEv.id?' stop':'');
-    dot.style.left=(e.t/(META.duration_s||DUR))*100+'%';
-    dot.title=`${e.t.toFixed(1)}s · ${e.id}`;
-    dot.onclick=()=>seek(e.t);
-    mk.appendChild(dot);
+    const dot=document.createElement('div'); dot.className='marker'+(stopEv&&e.id===stopEv.id?' stop':'');
+    dot.style.left=(e.t/(META.duration_s||DUR))*100+'%'; dot.title=`${e.t.toFixed(1)}s · ${e.id}`;
+    dot.onclick=()=>seek(e.t); mk.appendChild(dot);
   }
   $('#scrub').max=META.duration_s||DUR;
   render(0);
@@ -192,67 +267,61 @@ async function boot(){
 
 function setBadge(kind){
   const b=$('#modeBadge');
-  if(kind==='online'){b.className='badge online';b.textContent='● Online Gemini';}
-  else if(kind==='offline'){b.className='badge offline';b.textContent='● Offline deterministic fallback';}
-  else if(kind==='avail'){b.className='badge neutral';b.textContent='Gemini: available';}
-  else {b.className='badge offline';b.textContent='Gemini: no key → offline';}
+  const set=(cls,txt)=>{ b.className='chip '+cls; b.innerHTML='<span class="dot"></span>'+txt; };
+  if(kind==='online') set('online','Online Gemini');
+  else if(kind==='offline') set('offline','Offline fallback');
+  else if(kind==='avail') set('avail','Gemini: available');
+  else set('offline','Gemini: no key → offline');
 }
+function setPlayBtn(){ $('#play').innerHTML = icon(playing?'pause':'play') + (playing?'Pause':'Play'); }
 
 function render(t){
-  $('#tnow').textContent=t.toFixed(1)+'s';
-  $('#scrub').value=t;
-  const lf=nearest(lidar,t);
-  if(lf) $('#lidar').src='/media/'+lf.ref;
+  $('#tnow').textContent=t.toFixed(1)+'s'; $('#scrub').value=t;
+  const lf=nearest(lidar,t); if(lf) $('#lidar').src='/media/'+lf.ref;
   const m=nearest(metrics,t);
   if(m){
     $('#readout').innerHTML =
-      `t=<b>${m.t.toFixed(1)}s</b><br>front_distance=<b>${m.front_distance_m.toFixed(2)} m</b>`+
+      `t = <b>${m.t.toFixed(1)}s</b><br>front distance = <b>${m.front_distance_m.toFixed(2)} m</b>`+
       ` (thr ${META.demo_thresholds.front_safety_m})<br>`+
-      `planner=<b>${m.planner_speed_mps.toFixed(2)}</b>  applied=<b>${m.applied_speed_mps.toFixed(2)}</b>  `+
-      `actual=<b>${m.actual_speed_mps.toFixed(2)}</b> m/s<br>safety_state=<b>${m.safety_state}</b>`;
+      `planner <b>${m.planner_speed_mps.toFixed(2)}</b> · applied <b>${m.applied_speed_mps.toFixed(2)}</b> · `+
+      `actual <b>${m.actual_speed_mps.toFixed(2)}</b> m/s<br>safety state = <b>${m.safety_state}</b>`;
   }
   document.querySelectorAll('[data-c]').forEach(c=>c.style.left=cursorPct(t)+'%');
-  // 高亮当前时刻附近的证据卡
-  document.querySelectorAll('.ev').forEach(d=>
-    d.classList.toggle('hot', Math.abs(parseFloat(d.dataset.t)-t)<0.15));
+  document.querySelectorAll('.ev').forEach(d=>d.classList.toggle('hot', Math.abs(parseFloat(d.dataset.t)-t)<0.15));
 }
 function seek(t){ stop(); render(Math.max(0,Math.min(DUR,t))); }
+function play(){ if(playing){stop();return;} playing=true; setPlayBtn();
+  timer=setInterval(()=>{ let t=parseFloat($('#scrub').value)+0.1; if(t>DUR){t=DUR;stop();} render(t); },80); }
+function stop(){ playing=false; setPlayBtn(); if(timer)clearInterval(timer); }
 
-function play(){
-  if(playing){stop();return;}
-  playing=true; $('#play').textContent='⏸ Pause';
-  timer=setInterval(()=>{
-    let t=parseFloat($('#scrub').value)+0.1;
-    if(t>DUR){t=DUR; stop();}
-    render(t);
-  },80);
+// ---- Tool stepper item ----
+function stepItem(tr){
+  const s=document.createElement('div'); s.className='step';
+  const win = tr.args&&tr.args.start!=null ? ` [${tr.args.start},${tr.args.end}]`
+            : tr.args&&tr.args.evaluation_window ? ` [${tr.args.evaluation_window.join(',')}]` : '';
+  s.innerHTML=`<span class="sdot">${icon(TOOL_ICON[tr.tool]||'search')}</span><span><b>${tr.tool}</b>${win}</span>`;
+  if(tr.args&&tr.args.start!=null){ s.classList.add('seekable'); s.onclick=()=>seek(tr.args.start); }
+  return s;
 }
-function stop(){ playing=false; $('#play').textContent='▶ Play'; if(timer)clearInterval(timer); }
+function showSteps(list){ const t=$('#tools'); t.innerHTML=''; t.style.display=list.length?'':'none'; list.forEach(tr=>t.appendChild(stepItem(tr))); }
 
-function toolChip(tr){
-  const c=document.createElement('span'); c.className='chip tool';
-  c.textContent=tr.tool+(tr.args&&tr.args.start!=null?` [${tr.args.start},${tr.args.end}]`:
-                tr.args&&tr.args.evaluation_window?` [${tr.args.evaluation_window.join(',')}]`:'');
-  if(tr.args&&tr.args.start!=null){c.style.cursor='pointer';c.classList.remove('tool');c.onclick=()=>seek(tr.args.start);}
-  return c;
-}
 function onProgress(j){
-  if(j.event==='start'){ setBadge('online'); $('#answer').innerHTML='<i>● Gemini online — investigating…</i>'; }
+  if(j.event==='start'){ setBadge('online'); $('#answer').innerHTML='<i>Gemini online — investigating…</i>'; $('#tools').style.display=''; }
   else if(j.event==='thinking'){ $('#answer').innerHTML=`<i>Thinking… (step ${j.step+1})</i>`; }
   else if(j.event==='tool_call'){
-    $('#tools').appendChild(toolChip(j));
-    $('#answer').innerHTML=`<i>→ calling <b>${j.tool}</b>${j.images?` · +${j.images} image${j.images>1?'s':''}`:''}</i>`;
+    $('#tools').style.display=''; $('#tools').appendChild(stepItem(j));
+    $('#answer').innerHTML=`<i>Calling <b>${j.tool}</b>${j.images?` · +${j.images} image${j.images>1?'s':''}`:''}</i>`;
   }
   else if(j.event==='fallback'){ setBadge('offline'); $('#answer').innerHTML=`<i>Gemini unavailable (${j.reason}) — offline fallback…</i>`; }
 }
 function onResult(j){
   setBadge(j.mode==='online'?'online':'offline');
-  if(j.history){ HIST=j.history; $('#turns').textContent=`conversation turns: ${HIST.length/2} · follow-ups keep context`; }
+  if(j.history){ HIST=j.history; $('#turns').textContent=`turns: ${HIST.length/2} · follow-ups keep context`; }
   $('#answer').innerHTML=fmtAnswer(j.answer||'(no answer)');
-  $('#tools').innerHTML='';                       // 用最终 trace 重建,保证准确(含离线路径)
-  (j.trace||[]).forEach(tr=>$('#tools').appendChild(toolChip(tr)));
+  showSteps(j.trace||[]);                            // rebuild from final trace (also covers offline path)
   if(j.mode==='offline'&&j.fallback_reason){
-    const c=document.createElement('span');c.className='chip';c.textContent='fallback: '+j.fallback_reason;$('#tools').appendChild(c);
+    const c=document.createElement('div');c.className='step';c.innerHTML=`<span class="sdot">${icon('refresh')}</span><span>fallback: ${esc(j.fallback_reason)}</span>`;
+    $('#tools').appendChild(c);
   }
   $('#imgcount').textContent=`images submitted to Gemini: ${j.images_submitted||0} · model: ${j.model||'—'}`;
 }
@@ -266,48 +335,36 @@ function handleSSE(block){
   let j; try{ j=JSON.parse(data); }catch(e){ return; }
   if(ev==='result') onResult(j); else onProgress(j);
 }
+
 let BUSY=false, LASTQ=null, ABORT=null, TIMER=null;
 const TIMEOUT_MS=45000;
-function setBusy(b){
-  BUSY=b;
-  $('#ask').disabled=b; $('#reset').disabled=b;
-  document.querySelectorAll('[data-q]').forEach(x=>x.disabled=b);
-  $('#cancel').style.display=b?'':'none';
-}
-function retryLink(){
-  return ` <span class="retry" id="retry">retry</span>`;
-}
+function setBusy(b){ BUSY=b; $('#ask').disabled=b; $('#reset').disabled=b;
+  document.querySelectorAll('[data-q]').forEach(x=>x.disabled=b); $('#cancel').style.display=b?'':'none'; }
+const retryLink = () => ` <span class="retry" id="retry">retry</span>`;
 async function ask(q){
   if(!q || !q.trim()) return;
-  if(BUSY) return;                 // 防重复点击 / 并发请求
+  if(BUSY) return;                                   // guard against duplicate clicks / concurrent requests
   LASTQ=q; setBusy(true);
-  $('#tools').innerHTML=''; $('#imgcount').textContent='';
+  $('#tools').innerHTML=''; $('#tools').style.display='none'; $('#imgcount').textContent='';
   $('#answer').innerHTML='<i>Starting…</i>';
-  ABORT=new AbortController();
-  let sawResult=false;
+  ABORT=new AbortController(); let sawResult=false;
   clearTimeout(TIMER); TIMER=setTimeout(()=>{ if(ABORT) ABORT.abort('timeout'); }, TIMEOUT_MS);
   try{
     const resp=await fetch('/investigate/stream',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({question:q, history:HIST}), signal:ABORT.signal});
-    if(!resp.ok){
-      const j=await resp.json().catch(()=>({}));
-      $('#answer').innerHTML=`Request rejected (${resp.status}): ${esc(j.error||'')}.`+retryLink();
-      return;
-    }
+    if(!resp.ok){ const j=await resp.json().catch(()=>({}));
+      $('#answer').innerHTML=`Request rejected (${resp.status}): ${esc(j.error||'')}.`+retryLink(); return; }
     const reader=resp.body.getReader(), dec=new TextDecoder(); let buf='';
-    while(true){
-      const {value,done}=await reader.read(); if(done)break;
+    while(true){ const {value,done}=await reader.read(); if(done)break;
       buf+=dec.decode(value,{stream:true});
       let i; while((i=buf.indexOf('\n\n'))>=0){ const blk=buf.slice(0,i); buf=buf.slice(i+2);
-        if(blk.includes('event: result')) sawResult=true; handleSSE(blk); }
-    }
+        if(blk.includes('event: result')) sawResult=true; handleSSE(blk); } }
     if(buf.trim()){ if(buf.includes('event: result')) sawResult=true; handleSSE(buf); }
-    if(!sawResult){ $('#answer').innerHTML='Connection closed before a result arrived.'+retryLink(); }
+    if(!sawResult) $('#answer').innerHTML='Connection closed before a result arrived.'+retryLink();
   }catch(e){
     if(ABORT && ABORT.signal.aborted)
       $('#answer').innerHTML=(ABORT.signal.reason==='timeout'?'Timed out (45s).':'Cancelled.')+retryLink();
-    else
-      $('#answer').innerHTML='Connection lost.'+retryLink();
+    else $('#answer').innerHTML='Connection lost.'+retryLink();
   }finally{
     clearTimeout(TIMER); ABORT=null; setBusy(false);
     const rl=$('#retry'); if(rl) rl.onclick=()=>ask(LASTQ);
@@ -319,13 +376,10 @@ $('#jump').onclick=()=>seek(STOP_T);
 $('#scrub').oninput=e=>{stop();render(parseFloat(e.target.value));};
 $('#ask').onclick=()=>ask($('#q').value);
 $('#cancel').onclick=()=>{ if(ABORT) ABORT.abort('cancel'); };
-$('#reset').onclick=()=>{ if(BUSY) return; HIST=[];$('#turns').textContent='';$('#tools').innerHTML='';$('#imgcount').textContent='';
-  $('#answer').innerHTML='New investigation — context cleared.';$('#q').value='';};
+$('#reset').onclick=()=>{ if(BUSY) return; HIST=[]; $('#turns').textContent=''; $('#tools').innerHTML=''; $('#tools').style.display='none';
+  $('#imgcount').textContent=''; $('#answer').innerHTML='New investigation — context cleared.'; $('#q').value=''; };
 document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{$('#q').value=b.dataset.q;ask(b.dataset.q);});
-// 答案里的时间戳链接 → 跳时间轴(事件委托,适配动态内容)
-$('#answer').addEventListener('click',e=>{
-  const l=e.target.closest('.tlink'); if(l) seek(parseFloat(l.dataset.t));
-});
+$('#answer').addEventListener('click',e=>{ const l=e.target.closest('.tlink'); if(l) seek(parseFloat(l.dataset.t)); });
 boot();
 </script>
 </body>
