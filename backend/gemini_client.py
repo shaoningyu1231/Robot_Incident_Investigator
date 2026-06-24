@@ -89,16 +89,17 @@ import incident_rules as R
 API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 SYSTEM = (
     "You are a robot incident investigator. Investigate using ONLY the provided tools and the "
-    "evidence they return. "
-    "To explain WHY the robot stopped, you MUST call inspect_incident_window around the stop time "
-    "(the stop is near t=10-11s; inspect a window such as 9-12s) with "
-    "conclusion_id='concl_obstacle_stop'; use search_logs only to locate event times, not as a "
-    "substitute for inspect_incident_window. "
-    "Always cite evidence timestamps. "
-    "Report root cause with the evidence_strength level (high/medium/low) the tool returns; it "
-    "reflects completeness and consistency, NOT a probability. For recovery, call "
+    "evidence they return. Answer ONLY the question that was asked.\n"
+    "For a 'why did it stop' / root-cause question: call inspect_incident_window once (window ~9-12s, "
+    "conclusion_id='concl_obstacle_stop'), then state the root cause and CITE the specific evidence "
+    "timestamps it returns — the LiDAR return, the front-distance threshold crossing, the stop event, "
+    "and the velocity halt (around t=10.4, 10.5, 10.6 and 11.3 s). Report the evidence_strength level "
+    "(high/medium/low) the tool returns; it reflects completeness and consistency, NOT a probability. "
+    "Do NOT call check_recovery_readiness for a why/root-cause question, and do not discuss recovery.\n"
+    "Only when the user EXPLICITLY asks about resuming / recovery / whether it can continue: call "
     "check_recovery_readiness and report conditions_met / blocked / insufficient_evidence as a "
-    "recovery-condition check — never issue a safety certification. "
+    "recovery-condition check — never issue a safety certification.\n"
+    "Use search_logs only to locate event times, never as a substitute for inspect_incident_window. "
     "When a tool returns LiDAR or chart images, ground your statements in what they show."
 )
 
@@ -216,7 +217,8 @@ class GeminiInvestigator:
         contents = _hist_to_contents(history) + [{"role": "user", "parts": [{"text": question}]}]
         body_base = {"systemInstruction": {"parts": [{"text": SYSTEM}]},
                      "tools": [{"functionDeclarations": TOOL_DECLS}],
-                     "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}}}
+                     "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}},
+                     "generationConfig": {"temperature": 0}}  # determinism for stable demo behavior
         trace = []
         attached = set()
         print(f"[gemini] ONLINE model={self.model}", file=sys.stderr)
