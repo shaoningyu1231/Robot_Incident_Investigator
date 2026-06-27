@@ -1,0 +1,14 @@
+# Never ship real data, keys, bags, or eval scratch into the image
+sample_data/
+synthetic_bag/
+eval_build/
+eval_incidents/
+*.bag
+*.db3
+*.mcap
+.gemini_key
+*.key
+__pycache__/
+*.pyc
+.git/
+.gitignore

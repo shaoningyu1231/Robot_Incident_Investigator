@@ -154,4 +154,5 @@ app = Starlette(routes=[
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=int(os.environ.get("PORT", 8000)))
+    # 0.0.0.0 so the container is reachable on Cloud Run (binds $PORT, default 8080).
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
