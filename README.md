@@ -4,8 +4,8 @@
 
 Ask *why an autonomous robot stopped* and get a grounded, timestamped answer. The agent uses
 the **Gemini API** with **multimodal function calling** over **LiDAR frames, telemetry charts,
-and structured logs**, cites **clickable evidence**, and uses **deterministic verification** so
-it never hallucinates a root cause or issues a safety approval. Deployed on **Google Cloud Run**.
+and structured logs**, cites **clickable evidence**, and uses **deterministic verification** to
+reduce hallucinated root-cause claims and avoid issuing safety approvals. Deployed on **Google Cloud Run**.
 
 - **Live app (Cloud Run):** `<FILL AFTER DEPLOY>`
 - **Demo video (<2 min):** `<FILL>`
