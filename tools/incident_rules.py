@@ -292,9 +292,10 @@ def integrity_checks(inc):
     ann_refs = [e["ref"] for e in inc.annotations["evidence"] if e["ref"].startswith("lidar_frames/")]
     miss_ann = [r for r in ann_refs if not (d / r).exists()]
     checks.append(("annotation lidar refs exist", not miss_ann, f"missing={miss_ann}"))
+    # Public description must not reverse-mention any real error code (no digits) or "error code".
     desc = inc.metadata.get("description", "")
-    checks.append(("metadata.description 不提 105/error code",
-                   "105" not in desc and "error" not in desc.lower(), repr(desc)))
+    checks.append(("metadata.description omits real error codes / digits",
+                   "error" not in desc.lower() and not any(ch.isdigit() for ch in desc), repr(desc)))
     checks.append(("recovery.conditions 无 data_window",
                    all("data_window" not in c for c in inc.annotations["recovery"]["conditions"]), ""))
     rq = inc.annotations["conclusions"][0]["required_evidence"]
