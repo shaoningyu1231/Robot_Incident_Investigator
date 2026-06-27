@@ -7,7 +7,8 @@ the **Gemini API** with **multimodal function calling** over **LiDAR frames, tel
 and structured logs**, cites **clickable evidence**, and uses **deterministic verification** to
 reduce hallucinated root-cause claims and avoid issuing safety approvals. Deployed on **Google Cloud Run**.
 
-- **Live app (Cloud Run):** `<FILL AFTER DEPLOY>`
+- **Live app (Cloud Run):** https://robot-incident-investigator-1055792538383.asia-northeast1.run.app
+- **GitHub:** https://github.com/shaoningyu1231/Robot_Incident_Investigator
 - **Demo video (<2 min):** `<FILL>`
 
 ## Why it matters

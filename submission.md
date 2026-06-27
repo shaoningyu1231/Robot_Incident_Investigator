@@ -47,8 +47,9 @@ codes, bag names, topic naming, or internal system details, and exposes no custo
 or robot data.
 
 ## Links
-- Deployed app (Cloud Run): `<FILL AFTER DEPLOY>`
-- GitHub (public): `<FILL AFTER PUSH>`
+- Deployed app (Cloud Run): https://robot-incident-investigator-1055792538383.asia-northeast1.run.app
+- GitHub (public): https://github.com/shaoningyu1231/Robot_Incident_Investigator
+- Demo video (<2 min): `<FILL>`
 
 ## Run locally
 ```
