@@ -17,3 +17,27 @@ eval_incidents/
 # 密钥绝不入库
 *.key
 .gemini_key
+
+# Internal / collaboration docs and parked experiments — kept locally, not published
+plan.md
+progress.md
+data_pipeline.md
+non_sensitive.md
+demo.md
+runbook.md
+schema.md
+submission.md
+requirement.md
+slide.md
+*.pdf
+backend/interactions_client.py
+backend/interactions_check.py
+backend/frontend/index_verified.html
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.MOV
+*.MP4
+*.MKV
+*.WEBM
