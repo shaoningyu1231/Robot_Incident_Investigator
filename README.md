@@ -79,7 +79,7 @@ what happened during the incident, then click a cited timestamp in the answer (o
 viewer time cursor jumps to that instant — LiDAR, telemetry, event log, and evidence markers all
 scrub together. A more robotics-native view than the pre-rendered PNGs.
 
-> _Demo GIF: coming soon._
+![Rerun-linked investigation: clicking a cited timestamp in the answer seeks the embedded Rerun viewer](docs/rerun_linked.gif)
 
 This runs **locally** — the 47 MB viewer and the `.rrd` are dev-only and git-ignored, so the public
 Cloud Run demo stays lightweight:
