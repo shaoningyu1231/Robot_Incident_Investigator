@@ -533,7 +533,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 0.1,
@@ -541,7 +542,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 0.2,
@@ -549,7 +551,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 0.3,
@@ -557,7 +560,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 0.4,
@@ -565,7 +569,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 0.5,
@@ -573,7 +578,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 0.6,
@@ -581,7 +587,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.975
       },
       {
         "t": 0.7,
@@ -589,7 +596,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 0.8,
@@ -597,7 +605,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.973
       },
       {
         "t": 0.9,
@@ -605,7 +614,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 1.0,
@@ -613,7 +623,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 1.1,
@@ -621,7 +632,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 1.2,
@@ -629,7 +641,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 1.3,
@@ -637,7 +650,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 1.4,
@@ -645,7 +659,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 1.5,
@@ -653,7 +668,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.99
       },
       {
         "t": 1.6,
@@ -661,7 +677,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 1.7,
@@ -669,7 +686,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 1.8,
@@ -677,7 +695,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 1.9,
@@ -685,7 +704,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 2.0,
@@ -693,7 +713,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 2.1,
@@ -701,7 +722,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 2.2,
@@ -709,7 +731,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 2.3,
@@ -717,7 +740,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.988
       },
       {
         "t": 2.4,
@@ -725,7 +749,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 2.5,
@@ -733,7 +758,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 2.6,
@@ -741,7 +767,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.973
       },
       {
         "t": 2.7,
@@ -749,7 +776,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 2.8,
@@ -757,7 +785,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.971
       },
       {
         "t": 2.9,
@@ -765,7 +794,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 3.0,
@@ -773,7 +803,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 3.1,
@@ -781,7 +812,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 3.2,
@@ -789,7 +821,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 3.3,
@@ -797,7 +830,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 3.4,
@@ -805,7 +839,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 3.5,
@@ -813,7 +848,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 3.6,
@@ -821,7 +857,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 3.7,
@@ -829,7 +866,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 3.8,
@@ -837,7 +875,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 3.9,
@@ -845,7 +884,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 4.0,
@@ -853,7 +893,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 4.1,
@@ -861,7 +902,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.97
       },
       {
         "t": 4.2,
@@ -869,7 +911,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.97
       },
       {
         "t": 4.3,
@@ -877,7 +920,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.972
       },
       {
         "t": 4.4,
@@ -885,7 +929,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 4.5,
@@ -893,7 +938,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 4.6,
@@ -901,7 +947,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 4.7,
@@ -909,7 +956,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.988
       },
       {
         "t": 4.8,
@@ -917,7 +965,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 4.9,
@@ -925,7 +974,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 5.0,
@@ -933,7 +983,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 5.1,
@@ -941,7 +992,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 5.2,
@@ -949,7 +1001,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 5.3,
@@ -957,7 +1010,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.973
       },
       {
         "t": 5.4,
@@ -965,7 +1019,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 5.5,
@@ -973,7 +1028,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 5.6,
@@ -981,7 +1037,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 5.7,
@@ -989,7 +1046,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 5.8,
@@ -997,7 +1055,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 5.9,
@@ -1005,7 +1064,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 6.0,
@@ -1013,7 +1073,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 6.1,
@@ -1021,7 +1082,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.969
       },
       {
         "t": 6.2,
@@ -1029,7 +1091,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 6.3,
@@ -1037,7 +1100,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 6.4,
@@ -1045,7 +1109,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 6.5,
@@ -1053,7 +1118,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 6.6,
@@ -1061,7 +1127,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 6.7,
@@ -1069,7 +1136,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 6.8,
@@ -1077,7 +1145,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 6.9,
@@ -1085,7 +1154,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 7.0,
@@ -1093,7 +1163,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 7.1,
@@ -1101,7 +1172,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 7.2,
@@ -1109,7 +1181,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 7.3,
@@ -1117,7 +1190,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 7.4,
@@ -1125,7 +1199,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 7.5,
@@ -1133,7 +1208,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 7.6,
@@ -1141,7 +1217,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.961
       },
       {
         "t": 7.7,
@@ -1149,7 +1226,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 7.8,
@@ -1157,7 +1235,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.975
       },
       {
         "t": 7.9,
@@ -1165,7 +1244,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 8.0,
@@ -1173,7 +1253,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 8.1,
@@ -1181,7 +1262,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 8.2,
@@ -1189,7 +1271,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 8.3,
@@ -1197,7 +1280,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 8.4,
@@ -1205,7 +1289,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 8.5,
@@ -1213,7 +1298,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 8.6,
@@ -1221,7 +1307,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 8.7,
@@ -1229,7 +1316,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 8.8,
@@ -1237,7 +1325,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.975
       },
       {
         "t": 8.9,
@@ -1245,7 +1334,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 9.0,
@@ -1253,7 +1343,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.974
       },
       {
         "t": 9.1,
@@ -1261,7 +1352,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 9.2,
@@ -1269,7 +1361,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 9.3,
@@ -1277,7 +1370,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 9.4,
@@ -1285,7 +1379,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.975
       },
       {
         "t": 9.5,
@@ -1293,7 +1388,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 9.6,
@@ -1301,7 +1397,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 9.7,
@@ -1309,7 +1406,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 9.8,
@@ -1317,7 +1415,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 9.9,
@@ -1325,7 +1424,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 10.0,
@@ -1333,7 +1433,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.587
       },
       {
         "t": 10.1,
@@ -1341,7 +1442,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.135,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.127
       },
       {
         "t": 10.2,
@@ -1349,7 +1451,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 1.67,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 1.664
       },
       {
         "t": 10.3,
@@ -1357,7 +1460,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 1.205,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 1.194
       },
       {
         "t": 10.4,
@@ -1365,7 +1469,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 0.74,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 0.733
       },
       {
         "t": 10.5,
@@ -1373,7 +1478,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 0.74,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 0.721
       },
       {
         "t": 10.6,
@@ -1381,7 +1487,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.79,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 10.7,
@@ -1389,7 +1496,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.677,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 10.8,
@@ -1397,7 +1505,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.564,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 10.9,
@@ -1405,7 +1514,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.451,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 11.0,
@@ -1413,7 +1523,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.339,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 11.1,
@@ -1421,7 +1532,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.226,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 11.2,
@@ -1429,7 +1541,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.113,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 11.3,
@@ -1437,7 +1550,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.735
       },
       {
         "t": 11.4,
@@ -1445,7 +1559,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.727
       },
       {
         "t": 11.5,
@@ -1453,7 +1568,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.726
       },
       {
         "t": 11.6,
@@ -1461,7 +1577,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 11.7,
@@ -1469,7 +1586,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 11.8,
@@ -1477,7 +1595,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 11.9,
@@ -1485,7 +1604,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 12.0,
@@ -1493,7 +1613,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 12.1,
@@ -1501,7 +1622,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 12.2,
@@ -1509,7 +1631,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 12.3,
@@ -1517,7 +1640,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 12.4,
@@ -1525,7 +1649,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 12.5,
@@ -1533,7 +1658,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.728
       },
       {
         "t": 12.6,
@@ -1541,7 +1667,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 12.7,
@@ -1549,7 +1676,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.735
       },
       {
         "t": 12.8,
@@ -1557,7 +1685,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.736
       },
       {
         "t": 12.9,
@@ -1565,7 +1694,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 13.0,
@@ -1573,7 +1703,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.727
       },
       {
         "t": 13.1,
@@ -1581,7 +1712,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 13.2,
@@ -1589,7 +1721,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 13.3,
@@ -1597,7 +1730,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 13.4,
@@ -1605,7 +1739,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 13.5,
@@ -1613,7 +1748,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 13.6,
@@ -1621,7 +1757,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 13.7,
@@ -1629,7 +1766,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 13.8,
@@ -1637,7 +1775,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 13.9,
@@ -1645,7 +1784,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.723
       },
       {
         "t": 14.0,
@@ -1653,7 +1793,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 14.1,
@@ -1661,7 +1802,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 14.2,
@@ -1669,7 +1811,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 14.3,
@@ -1677,7 +1820,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 14.4,
@@ -1685,7 +1829,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.737
       },
       {
         "t": 14.5,
@@ -1693,7 +1838,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.728
       },
       {
         "t": 14.6,
@@ -1701,7 +1847,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 14.7,
@@ -1709,7 +1856,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 14.8,
@@ -1717,7 +1865,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 14.9,
@@ -1725,7 +1874,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.728
       },
       {
         "t": 15.0,
@@ -1733,7 +1883,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 15.1,
@@ -1741,7 +1892,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 15.2,
@@ -1749,7 +1901,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.726
       },
       {
         "t": 15.3,
@@ -1757,7 +1910,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 15.4,
@@ -1765,7 +1919,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 15.5,
@@ -1773,7 +1928,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 15.6,
@@ -1781,7 +1937,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 15.7,
@@ -1789,7 +1946,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 15.8,
@@ -1797,7 +1955,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.728
       },
       {
         "t": 15.9,
@@ -1805,7 +1964,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 16.0,
@@ -1813,7 +1973,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 16.1,
@@ -1821,7 +1982,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 16.2,
@@ -1829,7 +1991,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.728
       },
       {
         "t": 16.3,
@@ -1837,7 +2000,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 16.4,
@@ -1845,7 +2009,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 16.5,
@@ -1853,7 +2018,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 16.6,
@@ -1861,7 +2027,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.728
       },
       {
         "t": 16.7,
@@ -1869,7 +2036,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 16.8,
@@ -1877,7 +2045,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 16.9,
@@ -1885,7 +2054,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.735
       },
       {
         "t": 17.0,
@@ -1893,7 +2063,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 17.1,
@@ -1901,7 +2072,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 17.2,
@@ -1909,7 +2081,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 17.3,
@@ -1917,7 +2090,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.727
       },
       {
         "t": 17.4,
@@ -1925,7 +2099,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 17.5,
@@ -1933,7 +2108,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 17.6,
@@ -1941,7 +2117,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 17.7,
@@ -1949,7 +2126,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 17.8,
@@ -1957,7 +2135,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 17.9,
@@ -1965,7 +2144,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.735
       },
       {
         "t": 18.0,
@@ -1973,7 +2153,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 18.1,
@@ -1981,7 +2162,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.729
       },
       {
         "t": 18.2,
@@ -1989,7 +2171,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.737
       },
       {
         "t": 18.3,
@@ -1997,7 +2180,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 18.4,
@@ -2005,7 +2189,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.735
       },
       {
         "t": 18.5,
@@ -2013,7 +2198,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 18.6,
@@ -2021,7 +2207,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 18.7,
@@ -2029,7 +2216,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.725
       },
       {
         "t": 18.8,
@@ -2037,7 +2225,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 18.9,
@@ -2045,7 +2234,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 19.0,
@@ -2053,7 +2243,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.731
       },
       {
         "t": 19.1,
@@ -2061,7 +2252,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 19.2,
@@ -2069,7 +2261,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.736
       },
       {
         "t": 19.3,
@@ -2077,7 +2270,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 19.4,
@@ -2085,7 +2279,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 19.5,
@@ -2093,7 +2288,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 19.6,
@@ -2101,7 +2297,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.73
       },
       {
         "t": 19.7,
@@ -2109,7 +2306,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.732
       },
       {
         "t": 19.8,
@@ -2117,7 +2315,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.733
       },
       {
         "t": 19.9,
@@ -2125,7 +2324,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 20.0,
@@ -2133,7 +2333,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.734
       },
       {
         "t": 20.1,
@@ -2141,7 +2342,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 0.724
       },
       {
         "t": 20.2,
@@ -2149,7 +2351,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 0.74,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 2.969
       },
       {
         "t": 20.3,
@@ -2157,7 +2360,8 @@
         "applied_speed_mps": 0.0,
         "actual_speed_mps": 0.0,
         "front_distance_m": 1.05,
-        "safety_state": "STOP"
+        "safety_state": "STOP",
+        "front_min_range_m": 2.981
       },
       {
         "t": 20.4,
@@ -2165,7 +2369,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.0,
         "front_distance_m": 1.36,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 20.5,
@@ -2173,7 +2378,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.113,
         "front_distance_m": 1.67,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 20.6,
@@ -2181,7 +2387,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.226,
         "front_distance_m": 1.98,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       },
       {
         "t": 20.7,
@@ -2189,7 +2396,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.339,
         "front_distance_m": 2.29,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 20.8,
@@ -2197,7 +2405,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.451,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 20.9,
@@ -2205,7 +2414,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.564,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 21.0,
@@ -2213,7 +2423,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.677,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.974
       },
       {
         "t": 21.1,
@@ -2221,7 +2432,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 21.2,
@@ -2229,7 +2441,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 21.3,
@@ -2237,7 +2450,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 21.4,
@@ -2245,7 +2459,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 21.5,
@@ -2253,7 +2468,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 21.6,
@@ -2261,7 +2477,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 21.7,
@@ -2269,7 +2486,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.975
       },
       {
         "t": 21.8,
@@ -2277,7 +2495,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.976
       },
       {
         "t": 21.9,
@@ -2285,7 +2504,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 22.0,
@@ -2293,7 +2513,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.975
       },
       {
         "t": 22.1,
@@ -2301,7 +2522,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 22.2,
@@ -2309,7 +2531,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.964
       },
       {
         "t": 22.3,
@@ -2317,7 +2540,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 22.4,
@@ -2325,7 +2549,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.982
       },
       {
         "t": 22.5,
@@ -2333,7 +2558,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 22.6,
@@ -2341,7 +2567,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 22.7,
@@ -2349,7 +2576,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 22.8,
@@ -2357,7 +2585,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.984
       },
       {
         "t": 22.9,
@@ -2365,7 +2594,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.97
       },
       {
         "t": 23.0,
@@ -2373,7 +2603,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 23.1,
@@ -2381,7 +2612,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 23.2,
@@ -2389,7 +2621,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 23.3,
@@ -2397,7 +2630,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 23.4,
@@ -2405,7 +2639,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 23.5,
@@ -2413,7 +2648,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 23.6,
@@ -2421,7 +2657,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.989
       },
       {
         "t": 23.7,
@@ -2429,7 +2666,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 23.8,
@@ -2437,7 +2675,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.981
       },
       {
         "t": 23.9,
@@ -2445,7 +2684,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 24.0,
@@ -2453,7 +2693,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.979
       },
       {
         "t": 24.1,
@@ -2461,7 +2702,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.987
       },
       {
         "t": 24.2,
@@ -2469,7 +2711,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 24.3,
@@ -2477,7 +2720,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 24.4,
@@ -2485,7 +2729,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.978
       },
       {
         "t": 24.5,
@@ -2493,7 +2738,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.98
       },
       {
         "t": 24.6,
@@ -2501,7 +2747,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.983
       },
       {
         "t": 24.7,
@@ -2509,7 +2756,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.974
       },
       {
         "t": 24.8,
@@ -2517,7 +2765,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.985
       },
       {
         "t": 24.9,
@@ -2525,7 +2774,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.986
       },
       {
         "t": 25.0,
@@ -2533,7 +2783,8 @@
         "applied_speed_mps": 0.8,
         "actual_speed_mps": 0.79,
         "front_distance_m": 2.6,
-        "safety_state": "OK"
+        "safety_state": "OK",
+        "front_min_range_m": 2.977
       }
     ]
   }

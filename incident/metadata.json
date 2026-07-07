@@ -20,7 +20,8 @@
   },
   "duration_s": 25.0,
   "demo_thresholds": {
-    "front_safety_m": 1.2
+    "front_safety_m": 1.2,
+    "front_min_range_sector_deg": 15.0
   },
   "synchronization": {
     "default_max_skew_s": 0.2,

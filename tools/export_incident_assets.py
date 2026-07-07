@@ -21,6 +21,9 @@ import scenario as S
 TS = get_typestore(Stores.ROS1_NOETIC)
 ROOT = Path(__file__).resolve().parents[1]
 
+FRONT_SECTOR_HALF_DEG = 15.0                         # front angular sector for front_min_range_m
+FRONT_SECTOR_HALF_RAD = math.radians(FRONT_SECTOR_HALF_DEG)
+
 
 def lidar_ref(t):
     return f"lidar_frames/{int(round(t * 100))}.png"
@@ -89,6 +92,23 @@ def render_lidar(path, ranges, angle_min, angle_inc, thr=1.2, rmax=4.0):
     img.save(path)
 
 
+def front_min_range(ranges, angle_min, angle_inc, rmax=10.0):
+    """Min valid LaserScan range within the front sector (geometric, no ML).
+
+    Derived scalar for the incident-metrics spec so LiDAR evidence can be found in
+    data instead of hand-authored. Ignores <=0 / inf / nan / out-of-range points.
+    """
+    best = None
+    for i, r in enumerate(ranges):
+        r = float(r)
+        if r <= 0 or math.isinf(r) or math.isnan(r) or r > rmax:
+            continue
+        if abs(angle_min + i * angle_inc) <= FRONT_SECTOR_HALF_RAD:
+            if best is None or r < best:
+                best = r
+    return best
+
+
 # ---------- 读 bag ----------
 def read_bag(bag_path):
     series = {"front": {}, "planner": {}, "applied": {}, "actual": {}, "safety": {}}
@@ -134,7 +154,8 @@ def metadata():
         "robot": {"id": "demo_bot_01", "type": "demo_amr"},
         "frames": {"map": S.FRAMES[0], "odom": S.FRAMES[1], "base_link": S.FRAMES[2]},
         "duration_s": S.DURATION_S,
-        "demo_thresholds": {"front_safety_m": S.FRONT_SAFETY_M},
+        "demo_thresholds": {"front_safety_m": S.FRONT_SAFETY_M,
+                            "front_min_range_sector_deg": FRONT_SECTOR_HALF_DEG},
         "synchronization": {
             "default_max_skew_s": S.CORROB_MAX_SKEW_S,
             "relations": {
@@ -247,12 +268,19 @@ def main():
           0.0, tmax, (-0.1, 1.2), "OK=0 / STOP=1", step=True)
 
     # --- timeline.json ---
-    metrics = [{"t": t,
-                "planner_speed_mps": round(series["planner"][t], 3),
-                "applied_speed_mps": round(series["applied"][t], 3),
-                "actual_speed_mps": round(series["actual"][t], 3),
-                "front_distance_m": round(series["front"][t], 3),
-                "safety_state": series["safety"][t]} for t in times]
+    metrics = []
+    for t in times:
+        m = {"t": t,
+             "planner_speed_mps": round(series["planner"][t], 3),
+             "applied_speed_mps": round(series["applied"][t], 3),
+             "actual_speed_mps": round(series["actual"][t], 3),
+             "front_distance_m": round(series["front"][t], 3),
+             "safety_state": series["safety"][t]}
+        sc = scans.get(t)
+        if sc is not None:
+            fmr = front_min_range(sc[0], sc[1], sc[2])
+            m["front_min_range_m"] = round(fmr, 3) if fmr is not None else None
+        metrics.append(m)
     timeline = {"incident_id": S.INCIDENT_ID, "t_start": 0.0, "t_end": S.DURATION_S,
                 "tracks": {"lidar": lidar_track,
                            "charts": [
