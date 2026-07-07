@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Robot Incident Investigator — Rerun-linked</title>
+    <style>
+      html, body { margin: 0; height: 100%; }
+      body { font-family: system-ui, sans-serif; display: flex; height: 100vh; color: #1a1a1a; }
+      #left { width: 400px; padding: 18px; border-right: 1px solid #e0e0e0; overflow: auto; box-sizing: border-box; }
+      #viewer { flex: 1; min-width: 0; }
+      h1 { font-size: 17px; margin: 0 0 2px; }
+      .sub { font-size: 12px; color: #666; margin-bottom: 10px; }
+      .status { font-size: 12px; color: #0a58ca; margin: 8px 0; }
+      .ask-row { display: flex; gap: 6px; }
+      #q { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+      button { padding: 8px 12px; cursor: pointer; border: 1px solid #ccc; border-radius: 6px; background: #f5f5f5; font: inherit; }
+      button:disabled { opacity: .5; cursor: default; }
+      .quick { margin: 8px 0; }
+      .answer { margin: 12px 0; line-height: 1.55; font-size: 14px; white-space: pre-wrap; }
+      .tlink { color: #0a58ca; text-decoration: underline; cursor: pointer; }
+      code { background: #f0f0f0; padding: 0 3px; border-radius: 3px; }
+      h2 { font-size: 13px; margin: 14px 0 6px; } h2 small { color: #888; font-weight: normal; }
+      .evgrid { display: flex; flex-direction: column; gap: 6px; }
+      .ev { border: 1px solid #ddd; border-radius: 6px; padding: 8px; cursor: pointer; }
+      .ev:hover { background: #f7f9ff; border-color: #9db8f0; }
+      .ev b { display: block; text-transform: capitalize; font-size: 13px; }
+      .ev span { font-size: 11px; color: #666; }
+      .hint { font-size: 11px; color: #888; margin-top: 12px; }
+      .meta { font-size: 11px; color: #888; margin-top: 6px; }
+    </style>
+    <!-- No bundler: resolve the bare specifier to the Starlette-served ESM. -->
+    <script type="importmap">
+      { "imports": { "@rerun-io/web-viewer": "/static/vendor/rerun-web-viewer/0.33.1/index.js" } }
+    </script>
+  </head>
+  <body>
+    <div id="left">
+      <h1>Robot Incident Investigator</h1>
+      <div class="sub" id="scenario">Rerun-linked investigation</div>
+      <div class="status" id="status">loading the Rerun viewer…</div>
+      <div class="ask-row">
+        <input id="q" placeholder="Ask… e.g. Why did it stop?" />
+        <button id="ask">Ask</button>
+      </div>
+      <div class="quick">
+        <button data-q="Why did the robot stop? Inspect the incident around the stop and cite the evidence timestamps.">Why did it stop?</button>
+      </div>
+      <div id="answer" class="answer"></div>
+      <div class="meta" id="meta"></div>
+      <h2>Evidence <small>click to seek the viewer</small></h2>
+      <div class="evgrid" id="evidence"></div>
+      <div class="hint">Click a timestamp in the answer or an evidence card to move the Rerun time cursor.</div>
+    </div>
+    <div id="viewer"></div>
+
+    <script type="module">
+      import { WebViewer } from "@rerun-io/web-viewer";
+
+      const RRD_URL = location.origin + "/static/rerun/demo_obstacle_stop_01.rrd";
+      const TIMELINE = "incident_time";
+
+      const $ = (s) => document.querySelector(s);
+      const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+      function fmtAnswer(t) {
+        let h = esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
+        // Timestamps like "10.6s" / "t=10.6" become clickable seeks (seconds only; never 1.2m / 0.74m).
+        h = h.replace(/\b(?:t=)?(\d{1,2}(?:\.\d+)?)\s*s\b/g,
+                      (m, n) => `<span class="tlink" data-t="${n}">${m}</span>`);
+        return h;
+      }
+      const setStatus = (t) => { $("#status").textContent = t; };
+
+      // ---- Rerun viewer: the seek target ----
+      let viewer = null, rid = null;
+      async function startViewer() {
+        viewer = new WebViewer();
+        viewer.on("recording_open", (e) => {
+          if (!rid) {
+            rid = e.recording_id;
+            try { viewer.set_active_timeline(rid, TIMELINE); } catch (_) {}
+            setStatus("Viewer ready — ask a question, then click a timestamp or evidence card.");
+          }
+        });
+        await viewer.start(RRD_URL, $("#viewer"), { width: "100%", height: "100%" });
+      }
+      function seek(t) {
+        if (!rid) { setStatus("Viewer still loading — try again in a moment."); return; }
+        viewer.set_playing(rid, false);
+        viewer.set_active_timeline(rid, TIMELINE);
+        viewer.set_current_time(rid, TIMELINE, Math.max(0, t) * 1e9);
+      }
+
+      // ---- SSE investigation (reuses /investigate/stream) ----
+      let HIST = [], BUSY = false, LASTQ = null, ABORT = null, TIMER = null;
+      const TIMEOUT_MS = 45000;
+      const setBusy = (b) => { BUSY = b; $("#ask").disabled = b; document.querySelectorAll("[data-q]").forEach((x) => (x.disabled = b)); };
+
+      function onProgress(j) {
+        if (j.event === "start") setStatus("Gemini online — investigating…");
+        else if (j.event === "thinking") setStatus(`Thinking… (step ${j.step + 1})`);
+        else if (j.event === "tool_call") setStatus(`Calling ${j.tool}${j.images ? ` · +${j.images} image(s)` : ""}…`);
+        else if (j.event === "fallback") setStatus(`Gemini unavailable (${j.reason}) — offline fallback…`);
+      }
+      function onResult(j) {
+        if (j.history) HIST = j.history;
+        $("#answer").innerHTML = fmtAnswer(j.answer || "(no answer)");
+        $("#meta").textContent = `mode: ${j.mode || "—"} · model: ${j.model || "—"} · images: ${j.images_submitted || 0}`;
+        setStatus(j.mode === "online" ? "Online Gemini" : "Offline deterministic fallback");
+      }
+      function handleSSE(block) {
+        let ev = "message", data = "";
+        for (const line of block.split("\n")) {
+          if (line.startsWith("event:")) ev = line.slice(6).trim();
+          else if (line.startsWith("data:")) data += line.slice(5).trim();
+        }
+        if (!data) return;
+        let j; try { j = JSON.parse(data); } catch (e) { return; }
+        if (ev === "result") onResult(j); else onProgress(j);
+      }
+      async function ask(q) {
+        if (!q || !q.trim() || BUSY) return;
+        LASTQ = q; setBusy(true);
+        $("#answer").innerHTML = "<i>Starting…</i>"; $("#meta").textContent = "";
+        ABORT = new AbortController(); let sawResult = false;
+        clearTimeout(TIMER); TIMER = setTimeout(() => { if (ABORT) ABORT.abort("timeout"); }, TIMEOUT_MS);
+        try {
+          const resp = await fetch("/investigate/stream", {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify({ question: q, history: HIST }), signal: ABORT.signal,
+          });
+          if (!resp.ok) { const j = await resp.json().catch(() => ({})); $("#answer").innerHTML = `Request rejected (${resp.status}): ${esc(j.error || "")}.`; return; }
+          const reader = resp.body.getReader(), dec = new TextDecoder(); let buf = "";
+          while (true) {
+            const { value, done } = await reader.read(); if (done) break;
+            buf += dec.decode(value, { stream: true });
+            let i; while ((i = buf.indexOf("\n\n")) >= 0) { const blk = buf.slice(0, i); buf = buf.slice(i + 2); if (blk.includes("event: result")) sawResult = true; handleSSE(blk); }
+          }
+          if (buf.trim()) { if (buf.includes("event: result")) sawResult = true; handleSSE(buf); }
+          if (!sawResult) $("#answer").innerHTML = "Connection closed before a result arrived.";
+        } catch (e) {
+          $("#answer").innerHTML = ABORT && ABORT.signal.aborted ? (ABORT.signal.reason === "timeout" ? "Timed out (45s)." : "Cancelled.") : "Connection lost.";
+        } finally { clearTimeout(TIMER); ABORT = null; setBusy(false); }
+      }
+
+      // ---- evidence cards + wiring ----
+      async function boot() {
+        try {
+          const inc = await (await fetch("/incident")).json();
+          $("#scenario").textContent = inc.metadata.scenario_label || "Rerun-linked investigation";
+          const ev = $("#evidence");
+          for (const e of (inc.annotations.evidence || [])) {
+            const d = document.createElement("div");
+            d.className = "ev";
+            d.innerHTML = `<b>${e.id.replace(/^ev_/, "").replace(/_/g, " ")}</b>` +
+                          `<span>${e.modality} · ${e.t.toFixed(1)}s</span>`;
+            d.onclick = () => seek(e.t);
+            ev.appendChild(d);
+          }
+        } catch (e) { /* evidence is optional for the seek demo */ }
+        await startViewer();
+      }
+
+      $("#ask").onclick = () => ask($("#q").value);
+      $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") ask($("#q").value); });
+      document.querySelectorAll("[data-q]").forEach((b) => (b.onclick = () => { $("#q").value = b.dataset.q; ask(b.dataset.q); }));
+      $("#answer").addEventListener("click", (e) => { const l = e.target.closest(".tlink"); if (l) seek(parseFloat(l.dataset.t)); });
+      boot();
+    </script>
+  </body>
+</html>

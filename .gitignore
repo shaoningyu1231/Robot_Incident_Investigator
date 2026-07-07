@@ -21,6 +21,10 @@ rerun_build/
 # Node build artifacts (Rerun web viewer tooling)
 node_modules/
 
+# No-build /rerun static assets, materialized by tools/prepare_rerun_web_assets.py (not committed)
+backend/static/vendor/rerun-web-viewer/
+backend/static/rerun/
+
 # 密钥绝不入库
 *.key
 .gemini_key

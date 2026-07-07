@@ -7,14 +7,17 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 import sys
 from pathlib import Path
 
 from starlette.applications import Starlette
 from starlette.concurrency import iterate_in_threadpool
-from starlette.responses import JSONResponse, FileResponse, StreamingResponse
-from starlette.routing import Route
+from starlette.datastructures import MutableHeaders
+from starlette.responses import JSONResponse, FileResponse, HTMLResponse, StreamingResponse
+from starlette.routing import Mount, Route
+from starlette.staticfiles import StaticFiles
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -34,9 +37,60 @@ else:
 
 FRONTEND = Path(__file__).resolve().parent / "frontend" / "index.html"
 
+# --- Rerun-linked page (local, optional). Served only when the git-ignored web
+# viewer assets exist (materialized by tools/prepare_rerun_web_assets.py); the
+# main app and Cloud Run image stay unaffected. ---
+mimetypes.add_type("application/wasm", ".wasm")  # else compileStreaming rejects octet-stream
+mimetypes.add_type("application/octet-stream", ".rrd")  # binary recording, not text/plain
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+RERUN_HTML = Path(__file__).resolve().parent / "frontend" / "rerun.html"
+RERUN_VENDOR_INDEX = STATIC_DIR / "vendor" / "rerun-web-viewer" / "0.33.1" / "index.js"
+RERUN_RRD = STATIC_DIR / "rerun" / "demo_obstacle_stop_01.rrd"
+RERUN_SETUP_HINT = """<!doctype html><meta charset="utf-8"><title>Rerun mode not prepared</title>
+<body style="font-family:system-ui;max-width:640px;margin:48px auto;line-height:1.6;color:#222">
+<h1>Rerun mode is not set up locally</h1>
+<p>The Rerun web viewer assets and the recording are dev-only and git-ignored.
+Materialize them, then reload:</p>
+<pre style="background:#f4f4f4;padding:12px;border-radius:6px">python tools/export_to_rerun.py
+python tools/prepare_rerun_web_assets.py</pre>
+</body>"""
+
+
+class ScopedCrossOriginIsolation:
+    """Add COOP/COEP only to /rerun and /static responses (required by the
+    multi-threaded Rerun web viewer). Scoped so the main frontend and any
+    cross-origin resources it loads are unaffected. Pure ASGI: streaming-safe
+    for the 47 MB wasm."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        path = scope.get("path", "")
+        if scope["type"] != "http" or not (path == "/rerun" or path.startswith("/static")):
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["Cross-Origin-Opener-Policy"] = "same-origin"
+                headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
 
 async def index(request):
     return FileResponse(FRONTEND, media_type="text/html")
+
+
+async def rerun_page(request):
+    # Local-only: serve the linked page when assets exist, else a setup hint
+    # (never a startup failure).
+    if RERUN_VENDOR_INDEX.exists() and RERUN_RRD.exists():
+        return HTMLResponse(RERUN_HTML.read_text())
+    return HTMLResponse(RERUN_SETUP_HINT)
 
 
 async def incident(request):
@@ -141,6 +195,7 @@ async def investigate_stream(request):
 
 app = Starlette(routes=[
     Route("/", index),
+    Route("/rerun", rerun_page),
     Route("/incident", incident),
     Route("/health", health),
     Route("/media/{path:path}", media),
@@ -149,7 +204,9 @@ app = Starlette(routes=[
     Route("/tools/search_logs", tool_search_logs, methods=["POST"]),
     Route("/investigate", investigate, methods=["POST"]),
     Route("/investigate/stream", investigate_stream, methods=["POST"]),
+    Mount("/static", app=StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static"),
 ])
+app.add_middleware(ScopedCrossOriginIsolation)
 
 
 if __name__ == "__main__":
