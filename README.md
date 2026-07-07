@@ -9,7 +9,7 @@ reduce hallucinated root-cause claims and avoid issuing safety approvals. Deploy
 
 - **Live app (Cloud Run):** https://robot-incident-investigator-1055792538383.asia-northeast1.run.app
 - **GitHub:** https://github.com/shaoningyu1231/Robot_Incident_Investigator
-- **Demo video (<2 min):** `<FILL>`
+- **Demo video (<2 min):** coming soon
 
 ## Why it matters
 When a robot stops, engineers manually dig through bags, logs, LiDAR frames, and velocity
@@ -72,6 +72,25 @@ Browser (Material Design 3 UI) → Starlette backend → Gemini API (multimodal 
 GEMINI_API_KEY="$(cat ~/.gemini_key)" PORT=8000 python backend/app.py   # http://127.0.0.1:8000
 ```
 `/health` should report `integrity_ok:true` and `gemini:true`.
+
+## Rerun mode (optional)
+Export an incident to a [Rerun](https://github.com/rerun-io/rerun) `.rrd` recording and scrub the
+LiDAR scan, telemetry, event log, and evidence markers together on one timeline — a more
+robotics-native view than the pre-rendered PNGs.
+
+> _Screen recording (GIF): coming soon._
+
+```
+pip install -r requirements-dev.txt                       # includes rerun-sdk (dev only)
+python tools/export_to_rerun.py                           # -> rerun_build/demo_obstacle_stop_01.rrd
+python -m rerun rerun_build/demo_obstacle_stop_01.rrd     # open the viewer (add --web-viewer if headless)
+```
+
+The exporter reuses the same synthetic source as the incident assets
+(`export_incident_assets.read_bag()`), so the recording cannot drift from `timeline.json`. Rerun is
+an **optional dev dependency** (`requirements-dev.txt`), **not** part of the Cloud Run runtime
+(`requirements.txt`). Rerun is open source under permissive licenses (MIT OR Apache-2.0); see
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Data boundary
 All demo data is **fully synthetic**, inspired by common AMR failure patterns — a real ROS1 bag
