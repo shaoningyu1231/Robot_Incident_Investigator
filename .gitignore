@@ -14,6 +14,13 @@ __pycache__/
 eval_build/
 eval_incidents/
 
+# Rerun .rrd export spike output (regenerable via tools/export_to_rerun.py)
+rerun_build/
+*.rrd
+
+# Node build artifacts (Rerun web viewer tooling)
+node_modules/
+
 # 密钥绝不入库
 *.key
 .gemini_key

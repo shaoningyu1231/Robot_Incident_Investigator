@@ -1,0 +1,14 @@
+# Dev / eval / export dependencies. NOT needed for the Cloud Run runtime:
+# the server only reads already-exported incident/ assets (see requirements.txt).
+# Install with: pip install -r requirements-dev.txt
+-r requirements.txt
+
+# Synthetic bag generation, incident asset export, and scenario eval.
+rosbags==0.9.23
+numpy==2.2.6
+Pillow==12.1.1
+
+# Optional Rerun visualization mode (tools/export_to_rerun.py). Rerun is
+# distributed under permissive open-source licenses (MIT OR Apache-2.0);
+# see https://github.com/rerun-io/rerun and THIRD_PARTY_NOTICES.md.
+rerun-sdk==0.33.1
