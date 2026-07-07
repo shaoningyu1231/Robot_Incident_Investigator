@@ -73,23 +73,35 @@ GEMINI_API_KEY="$(cat ~/.gemini_key)" PORT=8000 python backend/app.py   # http:/
 ```
 `/health` should report `integrity_ok:true` and `gemini:true`.
 
-## Rerun mode (optional)
-Export an incident to a [Rerun](https://github.com/rerun-io/rerun) `.rrd` recording and scrub the
-LiDAR scan, telemetry, event log, and evidence markers together on one timeline — a more
-robotics-native view than the pre-rendered PNGs.
+## Rerun-linked investigation (optional, local)
+Run the investigation next to an embedded [Rerun](https://github.com/rerun-io/rerun) viewer: ask
+what happened during the incident, then click a cited timestamp in the answer (or an evidence card) and the
+viewer time cursor jumps to that instant — LiDAR, telemetry, event log, and evidence markers all
+scrub together. A more robotics-native view than the pre-rendered PNGs.
 
-> _Screen recording (GIF): coming soon._
+> _Demo GIF: coming soon._
+
+This runs **locally** — the 47 MB viewer and the `.rrd` are dev-only and git-ignored, so the public
+Cloud Run demo stays lightweight:
 
 ```
-pip install -r requirements-dev.txt                       # includes rerun-sdk (dev only)
-python tools/export_to_rerun.py                           # -> rerun_build/demo_obstacle_stop_01.rrd
-python -m rerun rerun_build/demo_obstacle_stop_01.rrd     # open the viewer (add --web-viewer if headless)
+pip install -r requirements-dev.txt          # includes rerun-sdk (dev only)
+python tools/export_to_rerun.py              # synthetic incident -> rerun_build/*.rrd
+python tools/prepare_rerun_web_assets.py     # stage viewer + .rrd into backend/static/ (git-ignored)
+GEMINI_API_KEY=... PORT=8000 python backend/app.py   # then open http://localhost:8000/rerun
+```
+
+No bundler: the `/rerun` page loads the viewer through an ES module import map. Or skip the server
+and open the recording in the standalone viewer:
+
+```
+python -m rerun rerun_build/demo_obstacle_stop_01.rrd    # add --web-viewer if headless
 ```
 
 The exporter reuses the same synthetic source as the incident assets
 (`export_incident_assets.read_bag()`), so the recording cannot drift from `timeline.json`. Rerun is
-an **optional dev dependency** (`requirements-dev.txt`), **not** part of the Cloud Run runtime
-(`requirements.txt`). Rerun is open source under permissive licenses (MIT OR Apache-2.0); see
+an **optional dev dependency** (`requirements-dev.txt`), **not** part of the Cloud Run runtime. Rerun
+is open source under permissive licenses (MIT OR Apache-2.0); see
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Data boundary
