@@ -1,0 +1,77 @@
+{
+  "profile_version": "0.1",
+  "profile_id": "generic_ros1_example",
+  "robot_family": "generic_ros1",
+  "privacy": {
+    "contains_private_topics": false,
+    "commit_safe": true
+  },
+  "time": {
+    "source": "bag_message_time"
+  },
+  "roles": {
+    "front_scan": {
+      "topic": "/scan",
+      "msgtype": "sensor_msgs/msg/LaserScan",
+      "extract": {
+        "kind": "front_min_range",
+        "front_sector_deg": 15.0,
+        "front_axis_rad": 0.0,
+        "range_min_m": 0.05,
+        "range_max_m": 10.0,
+        "output_metric": "front_min_range_m"
+      }
+    },
+    "cmd_vel": {
+      "topic": "/cmd_vel",
+      "msgtype": "geometry_msgs/msg/Twist",
+      "extract": {
+        "kind": "scalar_field",
+        "field": "linear.x",
+        "output_metric": "planner_speed_mps"
+      }
+    },
+    "actual_vel": {
+      "topic": "/odom",
+      "msgtype": "nav_msgs/msg/Odometry",
+      "extract": {
+        "kind": "scalar_field",
+        "field": "twist.twist.linear.x",
+        "output_metric": "actual_speed_mps"
+      }
+    },
+    "odom": {
+      "topic": "/odom",
+      "msgtype": "nav_msgs/msg/Odometry"
+    },
+    "rosout": {
+      "topic": "/rosout",
+      "msgtype": "rosgraph_msgs/msg/Log"
+    },
+    "diag": {
+      "topic": "/diagnostics",
+      "msgtype": "diagnostic_msgs/msg/DiagnosticArray"
+    },
+    "tf": {
+      "topic": "/tf",
+      "msgtype": "tf2_msgs/msg/TFMessage"
+    }
+  },
+  "events": {
+    "obstacle_stop": {
+      "source_role": "rosout",
+      "match": {
+        "kind": "disabled_in_example",
+        "note": "Private deployments map this abstract event to local log/diagnostic patterns in topic_mapping.local.json."
+      },
+      "output_code": "EVENT_OBSTACLE_STOP"
+    },
+    "obstacle_clear": {
+      "source_role": "rosout",
+      "match": {
+        "kind": "disabled_in_example"
+      },
+      "output_code": "EVENT_OBSTACLE_CLEAR"
+    }
+  }
+}
