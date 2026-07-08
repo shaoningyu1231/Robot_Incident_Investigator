@@ -18,6 +18,9 @@ eval_incidents/
 # Phase 2 private real-bag smoke-test outputs — local only, never published
 private_eval/
 
+# Private per-robot topic mapping (real topics / codes) — never committed
+*.local.json
+
 # Rerun .rrd export spike output (regenerable via tools/export_to_rerun.py)
 rerun_build/
 *.rrd
