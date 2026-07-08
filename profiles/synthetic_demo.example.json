@@ -1,0 +1,68 @@
+{
+  "profile_version": "0.1",
+  "profile_id": "synthetic_demo",
+  "robot_family": "synthetic_demo",
+  "privacy": {
+    "contains_private_topics": false,
+    "commit_safe": true
+  },
+  "time": {
+    "source": "bag_message_time"
+  },
+  "synchronization": {
+    "default_max_skew_s": 0.2
+  },
+  "roles": {
+    "front_scan": {
+      "topic": "/demo/scan",
+      "msgtype": "sensor_msgs/msg/LaserScan",
+      "extract": {
+        "kind": "front_min_range",
+        "front_sector_deg": 15.0,
+        "front_axis_rad": 0.0,
+        "range_min_m": 0.05,
+        "range_max_m": 10.0,
+        "output_metric": "front_min_range_m"
+      }
+    },
+    "front_distance": {
+      "topic": "/demo/front_distance",
+      "msgtype": "std_msgs/msg/Float32",
+      "extract": {
+        "kind": "scalar_field",
+        "field": "data",
+        "output_metric": "front_distance_m"
+      }
+    },
+    "cmd_vel": {
+      "topic": "/demo/planner_cmd_vel",
+      "msgtype": "geometry_msgs/msg/Twist",
+      "extract": {
+        "kind": "scalar_field",
+        "field": "linear.x",
+        "output_metric": "planner_speed_mps"
+      }
+    },
+    "actual_vel": {
+      "topic": "/demo/odom",
+      "msgtype": "nav_msgs/msg/Odometry",
+      "extract": {
+        "kind": "scalar_field",
+        "field": "twist.twist.linear.x",
+        "output_metric": "actual_speed_mps"
+      }
+    },
+    "error_events": {
+      "topic": "/demo/error_events",
+      "msgtype": "std_msgs/msg/String"
+    }
+  },
+  "events": {
+    "kind": "json_string_event",
+    "source_role": "error_events",
+    "code_field": "code",
+    "kind_field": "kind",
+    "assert_level": "WARN",
+    "clear_level": "INFO"
+  }
+}

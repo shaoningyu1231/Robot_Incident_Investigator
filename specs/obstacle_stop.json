@@ -13,7 +13,7 @@
   "signals": {
     "lidar_front_zone": {
       "type": "metric_threshold_state",
-      "modality": "lidar",
+      "modality": "metric",
       "metric": "front_min_range_m",
       "op": "<",
       "threshold": 1.2,

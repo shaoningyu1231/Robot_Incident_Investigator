@@ -31,13 +31,6 @@ import incident_rules as R  # reuse OPS / metric_at; verifier itself is untouche
 EPS = 1e-9
 PLACEHOLDER_OFFSET_S = 1.0  # placeholder t = search_window.start - this (out of window)
 
-CHART_BY_METRIC = {
-    "front_distance_m": "charts/front_distance.png",
-    "planner_speed_mps": "charts/velocity.png",
-    "applied_speed_mps": "charts/velocity.png",
-    "actual_speed_mps": "charts/velocity.png",
-}
-
 
 def _sorted_metrics(inc):
     return sorted(inc.timeline["tracks"]["metrics"], key=lambda m: m["t"])
@@ -72,7 +65,7 @@ def _ref_for(inc, modality, metric, code, t):
     if modality == "lidar":
         return _nearest_lidar_ref(inc, t)
     if modality == "metric":
-        return CHART_BY_METRIC.get(metric, "")
+        return ""  # metric evidence verifies via metric_at, not a viz file (viz is a separate layer)
     if modality == "log":
         return f"logs.jsonl#{code}"
     return ""
