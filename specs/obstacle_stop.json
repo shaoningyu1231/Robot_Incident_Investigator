@@ -1,0 +1,100 @@
+{
+  "spec_version": "0.1",
+  "spec_id": "obstacle_stop",
+  "title": "Obstacle-triggered safety stop",
+
+  "_about": "Reusable incident rule. A compiler (tools/incident_spec.py, not built yet) evaluates this against an incident's timeline/logs and EMITS the annotations shape that tools/incident_rules.py already consumes. Signals declare HOW to find/observe evidence in the data; anchor times (t) are discovered by the compiler via anchor_strategy, never written here. The deterministic verifier is unchanged.",
+
+  "requires": {
+    "metrics": ["front_min_range_m", "front_distance_m", "actual_speed_mps"],
+    "log_codes": ["DEMO_OBSTACLE_STOP_01", "DEMO_OBSTACLE_CLEAR_01"]
+  },
+
+  "signals": {
+    "lidar_front_zone": {
+      "type": "metric_threshold_state",
+      "modality": "lidar",
+      "metric": "front_min_range_m",
+      "op": "<",
+      "threshold": 1.2,
+      "positive_label": "obstacle",
+      "negative_label": "clear",
+      "anchor_strategy": "first_crossing",
+      "_note": "front-sector min LaserScan range (geometric, no ML), emitted by the exporter. A state signal ALWAYS emits one evidence: label=obstacle if it crosses inside the search window, else label=clear (a real negative observation). The clear observation is what makes sensor disagreement 'conflicting' rather than 'missing'."
+    },
+    "front_distance_zone": {
+      "type": "metric_threshold_state",
+      "modality": "metric",
+      "metric": "front_distance_m",
+      "op": "<",
+      "threshold": 1.2,
+      "positive_label": "obstacle",
+      "negative_label": "clear",
+      "anchor_strategy": "first_crossing"
+    },
+    "stop_event": {
+      "type": "log_event",
+      "modality": "log",
+      "code": "DEMO_OBSTACLE_STOP_01",
+      "anchor_strategy": "first"
+    },
+    "velocity_halt": {
+      "type": "metric_threshold_crossing",
+      "modality": "metric",
+      "metric": "actual_speed_mps",
+      "op": "<=",
+      "threshold": 0.01,
+      "anchor_strategy": "first_true_after:stop_event",
+      "_note": "event/crossing signal: emits evidence only when it fires; absence -> required_present false -> low. after:stop_event avoids matching an unrelated early zero."
+    }
+  },
+
+  "conclusions": [
+    {
+      "id": "concl_obstacle_stop",
+      "statement": "The robot stopped because an obstacle entered the demo safety zone ahead.",
+      "search_window": [9.5, 11.8],
+      "_search_window_note": "Hint bracketing the stop hypothesis so anchor_strategy does not scan the whole timeline. The eval harness may override it.",
+      "required_signals": ["lidar_front_zone", "front_distance_zone", "stop_event", "velocity_halt"],
+      "corroboration_groups": [["lidar_front_zone", "front_distance_zone"]],
+      "temporal_checks": [
+        { "before": "front_distance_zone", "after": "stop_event", "min_delay_s": 0.0, "max_delay_s": 0.3 },
+        { "before": "stop_event", "after": "velocity_halt", "min_delay_s": 0.0, "max_delay_s": 1.0 }
+      ],
+      "metric_checks": [
+        { "signal": "front_distance_zone" },
+        { "signal": "velocity_halt" }
+      ]
+    }
+  ],
+
+  "stateful_events": [
+    { "code": "DEMO_OBSTACLE_STOP_01", "kind": "assert", "clears": "DEMO_OBSTACLE_CLEAR_01" },
+    { "code": "DEMO_OBSTACLE_CLEAR_01", "kind": "clear" }
+  ],
+
+  "recovery": {
+    "conditions": [
+      {
+        "id": "rc_obstacle_cleared",
+        "label": "Obstacle removed from safety zone",
+        "check": { "metric": "front_distance_m", "op": ">=", "threshold": 1.2,
+                   "aggregation": "continuous_at_end", "duration_s": 1.0 }
+      },
+      {
+        "id": "rc_stop_cleared",
+        "label": "Obstacle-stop event cleared",
+        "check": { "event_state": "DEMO_OBSTACLE_STOP_01", "must_be": "cleared" }
+      }
+    ]
+  },
+
+  "expected": {
+    "_about": "The correctness oracle: ONE obstacle-stop spec evaluated against three synthetic datasets must yield three verdicts (matches current eval). Not per-scenario specs.",
+    "against": {
+      "obstacle_stop": { "level": "high", "verdict": "ok" },
+      "planned_stop": { "level": "low", "verdict": "ok" },
+      "sensor_disagreement": { "level": "low", "verdict": "conflicting" }
+    }
+  }
+}
