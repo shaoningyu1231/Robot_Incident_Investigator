@@ -37,9 +37,11 @@ role labels are shared.
   a profile with private topics must not be committed.
 - `time.source` — where timestamps come from (`bag_message_time` for now).
 - `roles` — maps each neutral role to a real topic + msgtype + how to extract it.
-- `events` — maps each **abstract** event to a source role + a local match rule,
-  emitting an abstract `output_code` (e.g. `EVENT_OBSTACLE_STOP`). Real codes live
-  only in the private match rules.
+- `events` — maps each **abstract** event to `{source_role, matcher, transition,
+  output_code, emit}`. The `matcher` decides a match on the private source; the
+  extractor emits only the abstract `output_code` (e.g. `EVENT_OBSTACLE_STOP`) —
+  never the raw log text, diagnostic name, or real code. `transition`
+  (`assert` | `clear`) is declared, not guessed from content.
 
 ### Roles
 
@@ -47,27 +49,46 @@ role labels are shared.
 optional: if a robot does not publish it, the dependent signal simply degrades
 (see graceful degradation).
 
-### Extract kinds
+### Metric extract kinds (per role)
 
-- `front_min_range` — front-sector minimum LaserScan/points range (geometric, no
-  ML). Params: `front_sector_deg`, `front_axis_rad` (front direction, for robots
-  whose scan zero is not forward), `range_min_m`, `range_max_m`, `output_metric`.
+- `front_min_range` — front-sector minimum LaserScan range (geometric, no ML).
+  Params: `front_sector_deg`, `front_axis_rad` (front direction, for robots whose
+  scan zero is not forward), `range_min_m`, `range_max_m`, `output_metric`.
 - `scalar_field` — pull one numeric field (e.g. `twist.twist.linear.x`) into an
   `output_metric`. The field path depends on `msgtype`.
-- `log_event` — match a log/rosout entry for an abstract event (private match).
-- `diagnostic_event` — match a `DiagnosticArray` status for an abstract event.
-- *(later)* `tf_jump` — detect a discontinuity in a tf transform.
+- *(later)* `tf_jump` — discontinuity in a tf transform.
 
-`output_metric` names must match the neutral timeline schema the compiler reads
-(`front_min_range_m`, `front_distance_m`, `planner_speed_mps`, `applied_speed_mps`,
-`actual_speed_mps`, `safety_state`).
+Resampling: metrics are floor-bucketed to `resample.rate_hz` (default 10 Hz); the
+per-metric `aggregation` defaults to `min` for `front_min_range` and `last` for
+`scalar_field`. `output_metric` names must match the neutral timeline schema the
+compiler reads (`front_min_range_m`, `front_distance_m`, `planner_speed_mps`,
+`applied_speed_mps`, `actual_speed_mps`, `safety_state`).
+
+### Event matchers (per abstract event)
+
+`matcher.kind` is one of, with `op` in {`exact`, `contains`} (v1; unbounded regex is
+intentionally unsupported):
+
+- `json_string_event` — parse a `std_msgs/String` JSON payload; match `field` `op` `value`.
+- `rosout_text` — `rosgraph_msgs/Log`; optional `level_min`, and `value` `op` on the
+  message text. The text itself is never emitted.
+- `diagnostic_status` — `diagnostic_msgs/DiagnosticArray`; match a status `field`
+  (name/message) `op` `value`, optional `level_min`. Names are never emitted.
+
+`emit: edge` (or `deduplicate_window_s`) collapses repeated state republishes so a
+DiagnosticArray / rosout stream does not bloat the log. The extractor validates that
+`output_code` is unique, `source_role` exists, and `matcher.kind` is supported; a
+source message matching several events is handled in profile order.
 
 ## Graceful degradation
 
 - **Topic missing** → its metric is absent → the signal is absent / placeholder →
   the conclusion drops toward `low` / `insufficient_evidence`. Not a crash.
 - **Event missing** → no stop/clear event emitted; recovery/verdict degrade, no crash.
-- **Unsupported msgtype** → explicit warning; that role is skipped.
+- **Unsupported msgtype / matcher kind / missing field / missing topic** → a
+  structured warning; that role or event is skipped. Warnings are counts
+  (`{code, role?, count}`) only — never real topic / node / code / diagnostic names
+  or log text.
 
 ## Privacy rules
 
@@ -83,7 +104,10 @@ A generic profile demonstrates the **role→topic contract**; it does not, by
 itself, reproduce a real incident correctly (the public repo ships no real bag,
 and the generic example intentionally leaves `front_distance_m` / real events
 unmapped). Verdict correctness is validated only on the synthetic scenarios
-(`tools/eval_spec.py`), which remain the correctness oracle.
+(`tools/eval_extractor.py` — the canonical spec gate: profile matcher maps
+source-specific events to `EVENT_*`, the extractor emits neutral logs, the spec
+compiler consumes them, the verifier decides). `tools/eval_scenarios.py` covers the
+legacy hand-authored path. These remain the correctness oracle.
 
 ## Planned example profiles
 

@@ -80,5 +80,76 @@ with tempfile.TemporaryDirectory() as tmp:
     check("counts: raw=valid=output=5, invalid=0",
           rc["raw"] == 5 and rc["valid"] == 5 and rc["invalid"] == 0 and rc["output"] == 5)
 
+# --- Boundary checks: neutral spec, source-side-only real codes ---
+spec_txt = (ROOT / "specs" / "obstacle_stop.json").read_text()
+check("spec has no DEMO_ codes (abstract EVENT_* only)", "DEMO_" not in spec_txt)
+sp = json.loads((ROOT / "profiles" / "synthetic_demo.example.json").read_text())
+check("synthetic profile: output_code is EVENT_*, DEMO_ only inside matcher",
+      all(e["output_code"].startswith("EVENT_") for e in sp["events"].values())
+      and all("DEMO_" in json.dumps(e["matcher"]) for e in sp["events"].values()))
+
+
+def _header(i, t):
+    return T["std_msgs/msg/Header"](seq=i, stamp=T["builtin_interfaces/msg/Time"](
+        sec=int(t), nanosec=int((t % 1) * 1e9)), frame_id="")
+
+
+def build_log_bag(path, rows, base=1000.0):
+    Log = T["rosgraph_msgs/msg/Log"]
+    with Writer(path) as w:
+        conn = w.add_connection("/rosout", "rosgraph_msgs/msg/Log", typestore=TS)
+        for i, (dt, lvl, name, msg) in enumerate(rows):
+            t = base + dt
+            m = Log(header=_header(i, t), level=lvl, name=name, msg=msg,
+                    file="", function="", line=0, topics=[])
+            w.write(conn, int(t * 1e9), TS.serialize_ros1(m, "rosgraph_msgs/msg/Log"))
+
+
+def build_diag_bag(path, statuses, base=2000.0):
+    DA = T["diagnostic_msgs/msg/DiagnosticArray"]; DS = T["diagnostic_msgs/msg/DiagnosticStatus"]
+    with Writer(path) as w:
+        conn = w.add_connection("/diagnostics", "diagnostic_msgs/msg/DiagnosticArray", typestore=TS)
+        for i, (lvl, name) in enumerate(statuses):
+            st = DS(level=lvl, name=name, message="", hardware_id="", values=[])
+            m = DA(header=_header(i, base + i), status=[st])
+            w.write(conn, int((base + i) * 1e9), TS.serialize_ros1(m, "diagnostic_msgs/msg/DiagnosticArray"))
+
+
+def _logs(outdir):
+    return [json.loads(x) for x in (outdir / "logs.jsonl").read_text().splitlines() if x.strip()]
+
+
+# --- rosout_text matcher: match -> abstract code, edge-deduped, no text leak ---
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp); bag = tmp / "r.bag"
+    build_log_bag(bag, [(0, 2, "nav", "Navigating normally"),
+                        (1, 8, "safety", "OBSTACLE in safety zone"),
+                        (2, 8, "safety", "OBSTACLE in safety zone"),
+                        (3, 8, "safety", "OBSTACLE in safety zone")])  # republished
+    prof = {"profile_id": "r", "roles": {"rosout": {"topic": "/rosout", "msgtype": "rosgraph_msgs/msg/Log"}},
+            "events": {"obstacle_stop": {"source_role": "rosout",
+                       "matcher": {"kind": "rosout_text", "op": "contains", "value": "OBSTACLE", "level_min": 8},
+                       "transition": "assert", "output_code": "EVENT_OBSTACLE_STOP", "emit": "edge"}}}
+    EX.run(bag, prof, tmp / "out")
+    lg = _logs(tmp / "out")
+    check("rosout match -> abstract stop, edge-deduped to 1", len(lg) == 1 and lg[0]["code"] == "EVENT_OBSTACLE_STOP")
+    check("rosout: no source text / real code leaked",
+          all(x["message"] == "" and x["code"].startswith("EVENT_") for x in lg))
+
+# --- diagnostic_status matcher: match -> abstract; no-match -> nothing ---
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp)
+    build_diag_bag(tmp / "d.bag", [(0, "ok"), (2, "safety_controller"), (2, "safety_controller")])  # ERROR repeated
+    prof = {"profile_id": "d", "roles": {"diag": {"topic": "/diagnostics", "msgtype": "diagnostic_msgs/msg/DiagnosticArray"}},
+            "events": {"obstacle_stop": {"source_role": "diag",
+                       "matcher": {"kind": "diagnostic_status", "field": "name", "op": "contains", "value": "safety", "level_min": 2},
+                       "transition": "assert", "output_code": "EVENT_OBSTACLE_STOP", "emit": "edge"}}}
+    EX.run(tmp / "d.bag", prof, tmp / "out")
+    check("diagnostic match -> abstract stop, edge-deduped to 1",
+          len([x for x in _logs(tmp / "out") if x["code"] == "EVENT_OBSTACLE_STOP"]) == 1)
+    build_diag_bag(tmp / "d2.bag", [(0, "ok"), (1, "battery_low")])   # nothing at ERROR + "safety"
+    EX.run(tmp / "d2.bag", prof, tmp / "out2")
+    check("diagnostic no-match -> no events emitted", len(_logs(tmp / "out2")) == 0)
+
 print(f"--- {passed}/{passed + failed} extractor tests passed ---")
 sys.exit(0 if failed == 0 else 1)

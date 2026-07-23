@@ -2,27 +2,28 @@
 """Profile-driven incident extractor (Phase 2; synthetic gate first).
 
 Reads a rosbag + a topic-mapping profile and produces the NEUTRAL intermediate
-representation the spec compiler consumes: timeline.json (metrics only) +
-logs.jsonl + a minimal metadata.json. Renders NO visualization — no LiDAR frames,
-charts, or spatial images. Verification runs on scalars + events.
+representation the spec compiler consumes: timeline.json (metrics) + logs.jsonl
+(abstract events) + metadata.json. Renders NO visualization. Verification runs on
+scalars + abstract events only.
 
     bag + profile -> extract_incident -> timeline.json / logs.jsonl / metadata.json
                      incident_spec.py (compile) -> derived annotations
                      incident_rules.py (verify, unchanged)
 
-Hardening:
-  - Connection filtering: only the profile's mapped topics are read.
-  - A topic may back several roles (e.g. actual_vel and odom both on /odom); every
-    role's extract runs.
-  - Explicit resampling to a fixed output rate (default 10 Hz) with a declared
-    aggregation per metric (front_min_range -> min, scalar_field -> last). Floor
-    bucketing by integer index (float-robust), NOT last-write-wins on a rounded
-    timestamp. Events keep their own timestamp (rounded to 1 ms).
-  - metadata.resample records raw / valid / invalid / output counts + aggregation.
+Metrics: connection-filtered read; a topic may back several roles; explicit
+floor-bucket resampling with per-metric aggregation (front_min_range=min,
+scalar_field=last). metadata.resample records raw/valid/invalid/output + coverage.
 
-Extract kinds: front_min_range, scalar_field. Event kinds: json_string_event
-(rosout_text / diagnostic_status: later, with a unified event schema). A missing
-role degrades gracefully — its metric is absent, so the dependent signal is low.
+Events (unified schema): profile.events maps each ABSTRACT event to
+  {source_role, matcher:{kind, ...}, transition: assert|clear, output_code, emit}
+The matcher (json_string_event | rosout_text | diagnostic_status; ops exact |
+contains) decides a match on the private source; the extractor emits ONLY the
+abstract output_code — never the raw log text, diagnostic name, or real code.
+`transition` is declared, not guessed. `emit: edge` or `deduplicate_window_s`
+collapses repeated state republishes.
+
+warnings are structured counts ({code, role?, count}) with no real names/text.
+Missing role/topic, unsupported kind, or a bad message degrade gracefully.
 
 Usage:
   python tools/extract_incident.py --bag in.bag \\
@@ -31,7 +32,7 @@ Usage:
 import argparse
 import json
 import math
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from rosbags.rosbag1 import Reader
@@ -39,6 +40,7 @@ from rosbags.typesys import Stores, get_typestore
 
 TS = get_typestore(Stores.ROS1_NOETIC)
 DEFAULT_AGG = {"front_min_range": "min", "scalar_field": "last"}
+MATCHER_KINDS = {"json_string_event", "rosout_text", "diagnostic_status"}
 BUCKET_EPS = 1e-6
 
 
@@ -65,7 +67,6 @@ def _front_min_range(ranges, angle_min, angle_inc, ex):
 
 
 def _aggregate(samples, how, center):
-    """samples: [(t, v)] sorted by t, v not None. Aggregate per `how`."""
     if how == "min":
         return min(v for _, v in samples)
     if how == "max":
@@ -78,12 +79,8 @@ def _aggregate(samples, how, center):
 
 
 def _bucketize(raw, agg_of, bucket_s):
-    """raw: {metric: [(t, v)]} -> (rows sorted by t, out_count).
-
-    Floor bucketing by integer index (robust to 0.1 being inexact in float):
-    idx = floor(t / bucket_s + eps). Correct for any output rate, not just 10 Hz.
-    """
-    buckets = {}   # idx -> {metric: [(t, v)]}
+    """Floor bucketing by integer index (robust to 0.1 being inexact); any rate."""
+    buckets = {}
     for om, samples in raw.items():
         for (t, v) in samples:
             idx = int(math.floor(t / bucket_s + BUCKET_EPS))
@@ -101,27 +98,90 @@ def _bucketize(raw, agg_of, bucket_s):
     return rows, out_count
 
 
+def _op(op, actual, value):
+    if op == "exact":
+        return actual == value
+    if op == "contains":
+        return value in str(actual) if actual is not None else False
+    return False  # unbounded regex intentionally unsupported in v1
+
+
+def _apply_matcher(kind, msg, m, warn):
+    """Return True if `msg` matches. Never returns or emits raw content."""
+    op = m.get("op", "exact")
+    if kind == "json_string_event":
+        try:
+            payload = json.loads(msg.data)
+        except (ValueError, TypeError, AttributeError):
+            warn("event_parse_failed")
+            return False
+        return _op(op, payload.get(m.get("field", "code")), m.get("value"))
+    if kind == "rosout_text":
+        if "level_min" in m and int(getattr(msg, "level", 0)) < m["level_min"]:
+            return False
+        if "value" not in m:
+            return True                       # level-only match
+        return _op(m.get("op", "contains"), getattr(msg, "msg", ""), m["value"])
+    if kind == "diagnostic_status":
+        field = m.get("field", "name")
+        for s in getattr(msg, "status", []):
+            if "level_min" in m and int(getattr(s, "level", 0)) < m["level_min"]:
+                continue
+            if "value" not in m or _op(m.get("op", "contains"), getattr(s, field, ""), m["value"]):
+                return True
+        return False
+    return False
+
+
 def run(bag_path, profile, out_dir):
     roles = profile["roles"]
-    topic_roles = defaultdict(list)          # topic -> [role dict, ...]  (Bug 1 fix)
+    topic_roles = defaultdict(list)
     for r in roles.values():
         topic_roles[r["topic"]].append(r)
-    events_cfg = profile.get("events", {})
-    ev_role = events_cfg.get("source_role")
-    ev_topic = roles[ev_role]["topic"] if ev_role in roles else None
     rate_hz = float(profile.get("resample", {}).get("rate_hz", 10.0))
     bucket_s = 1.0 / rate_hz
 
-    want = set(topic_roles) | ({ev_topic} if ev_topic else set())
-    raw = defaultdict(list)      # output_metric -> [(t, v)] (valid samples only)
-    raw_count = defaultdict(int)  # attempts (messages), incl. invalid
+    warn_counts = Counter()
+
+    def warn(code, role=None):
+        warn_counts[(code, role)] += 1
+
+    # --- validate events (unique output_code, source_role exists, matcher kind supported) ---
+    valid_events = []   # (name, ev) in profile order -> deterministic multi-match
+    seen_codes = set()
+    for name, ev in profile.get("events", {}).items():
+        oc, sr = ev.get("output_code"), ev.get("source_role")
+        mk = ev.get("matcher", {}).get("kind")
+        if oc in seen_codes:
+            warn("duplicate_output_code"); continue
+        if sr not in roles:
+            warn("missing_source_role", role=name); continue
+        if mk not in MATCHER_KINDS:
+            warn("unsupported_matcher_kind"); continue
+        seen_codes.add(oc)
+        valid_events.append((name, ev))
+    ev_topic = defaultdict(list)
+    for name, ev in valid_events:
+        ev_topic[roles[ev["source_role"]]["topic"]].append((name, ev))
+    ev_state = {name: {"last_match": False, "last_emit": None} for name, _ in valid_events}
+
+    metric_topics = {r["topic"] for r in roles.values() if r.get("extract")}
+    event_topics = set(ev_topic)
+    want = metric_topics | event_topics
+
+    raw = defaultdict(list)
+    raw_count = defaultdict(int)
     agg_of = {}
-    logs, warnings = [], []
+    logs = []
     t0 = t1 = None
 
     with Reader(bag_path) as r:
+        present = {c.topic for c in r.connections}
+        for topic in want - present:                     # warn+skip: mapped topic absent from bag
+            role_name = next((n for n, rr in roles.items() if rr["topic"] == topic), None)
+            warn("missing_role_connection", role=role_name)
         start = r.start_time
-        conns = [c for c in r.connections if c.topic in want]   # connection filtering
+        conns = [c for c in r.connections if c.topic in want]
         for c, ts, rawdata in r.messages(connections=conns):
             t = (ts - start) / 1e9
             t0 = t if t0 is None else min(t0, t)
@@ -129,43 +189,45 @@ def run(bag_path, profile, out_dir):
             topic = c.topic
             ex_roles = [rr for rr in topic_roles.get(topic, [])
                         if rr.get("extract") and rr["extract"].get("output_metric")]
-            if ex_roles:
+            is_event_src = topic in ev_topic
+            if ex_roles or is_event_src:
                 try:
                     msg = TS.deserialize_ros1(rawdata, c.msgtype)
                 except Exception:
-                    msg = None
-                    warnings.append("deserialize_failed")
-                for rr in ex_roles:
-                    ex = rr["extract"]
-                    om = ex["output_metric"]
-                    agg_of[om] = ex.get("aggregation", DEFAULT_AGG.get(ex["kind"], "last"))
-                    raw_count[om] += 1
-                    if msg is None:
-                        continue
-                    try:
-                        if ex["kind"] == "front_min_range":
-                            v = _front_min_range(msg.ranges, float(msg.angle_min),
-                                                 float(msg.angle_increment), ex)
-                        elif ex["kind"] == "scalar_field":
-                            v = _get_field(msg, ex["field"])
-                        else:
-                            v = None
-                            warnings.append("unsupported_kind:" + str(ex["kind"]))
-                    except Exception:
-                        v = None
-                    if v is not None:
-                        raw[om].append((t, v))
-            if topic == ev_topic and events_cfg.get("kind") == "json_string_event":
+                    warn("deserialize_failed")
+                    continue
+            for rr in ex_roles:
+                ex = rr["extract"]
+                om = ex["output_metric"]
+                agg_of[om] = ex.get("aggregation", DEFAULT_AGG.get(ex["kind"], "last"))
+                raw_count[om] += 1
                 try:
-                    payload = json.loads(TS.deserialize_ros1(rawdata, c.msgtype).data)
-                    code = payload.get(events_cfg.get("code_field", "code"))
-                    kind = payload.get(events_cfg.get("kind_field", "kind"))
-                    level = (events_cfg.get("clear_level", "INFO") if kind == "clear"
-                             else events_cfg.get("assert_level", "WARN"))
-                    logs.append({"t": round(t, 3), "level": level, "node": "extractor",
-                                 "code": code, "message": ""})
-                except (ValueError, TypeError, AttributeError):
-                    warnings.append("event_parse_failed")
+                    if ex["kind"] == "front_min_range":
+                        v = _front_min_range(msg.ranges, float(msg.angle_min),
+                                             float(msg.angle_increment), ex)
+                    elif ex["kind"] == "scalar_field":
+                        v = _get_field(msg, ex["field"])
+                    else:
+                        v = None; warn("unsupported_extract_kind")
+                except Exception:
+                    v = None; warn("extract_field_error")
+                if v is not None:
+                    raw[om].append((t, v))
+            if is_event_src:
+                for name, ev in ev_topic[topic]:          # profile order -> deterministic
+                    matched = _apply_matcher(ev["matcher"]["kind"], msg, ev["matcher"], warn)
+                    st = ev_state[name]
+                    if matched:
+                        edge_ok = st["last_emit"] is None or not st["last_match"]
+                        win = ev.get("deduplicate_window_s")
+                        win_ok = win is None or st["last_emit"] is None or (t - st["last_emit"]) > win
+                        emit = ({"edge": edge_ok}.get(ev.get("emit", "all"), True)) and win_ok
+                        if emit:
+                            st["last_emit"] = t
+                            level = "WARN" if ev.get("transition") == "assert" else "INFO"
+                            logs.append({"t": round(t, 3), "level": level, "node": "extractor",
+                                         "code": ev["output_code"], "message": ""})
+                    st["last_match"] = matched
 
     metric_list, out_count = _bucketize(raw, agg_of, bucket_s)
 
@@ -184,14 +246,16 @@ def run(bag_path, profile, out_dir):
                                  "output": out_count[om], "aggregation": agg_of.get(om, "last")}
                             for om in raw_count},
                 "coverage_s": [timeline["t_start"], timeline["t_end"]]}
+    warnings = [dict({"code": c, "count": n}, **({"role": role} if role else {}))
+                for (c, role), n in sorted(warn_counts.items())]
     metadata = {"incident_id": timeline["incident_id"], "duration_s": timeline["t_end"],
                 "synchronization": {"default_max_skew_s":
                                     profile.get("synchronization", {}).get("default_max_skew_s", 0.2)},
                 "source": "extract_incident", "profile_id": profile.get("profile_id"),
-                "resample": resample, "warnings": sorted(set(warnings))}
+                "resample": resample, "warnings": warnings}
     (out / "metadata.json").write_text(json.dumps(metadata, indent=2))
     return {"metrics": len(metric_list), "logs": len(logs), "t_end": timeline["t_end"],
-            "resample": resample}
+            "resample": resample, "warnings": warnings}
 
 
 def main():
@@ -203,7 +267,7 @@ def main():
     profile = json.loads(args.profile.read_text())
     s = run(args.bag, profile, args.out)
     print(f"[extract] out={args.out} metrics={s['metrics']} logs={s['logs']} "
-          f"t_end={s['t_end']} resample={s['resample']['rate_hz']}Hz")
+          f"t_end={s['t_end']} warnings={s['warnings']}")
 
 
 if __name__ == "__main__":

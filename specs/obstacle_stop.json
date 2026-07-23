@@ -7,7 +7,7 @@
 
   "requires": {
     "metrics": ["front_min_range_m", "front_distance_m", "actual_speed_mps"],
-    "log_codes": ["DEMO_OBSTACLE_STOP_01", "DEMO_OBSTACLE_CLEAR_01"]
+    "log_codes": ["EVENT_OBSTACLE_STOP", "EVENT_OBSTACLE_CLEAR"]
   },
 
   "signals": {
@@ -35,7 +35,7 @@
     "stop_event": {
       "type": "log_event",
       "modality": "log",
-      "code": "DEMO_OBSTACLE_STOP_01",
+      "code": "EVENT_OBSTACLE_STOP",
       "anchor_strategy": "first"
     },
     "velocity_halt": {
@@ -69,8 +69,8 @@
   ],
 
   "stateful_events": [
-    { "code": "DEMO_OBSTACLE_STOP_01", "kind": "assert", "clears": "DEMO_OBSTACLE_CLEAR_01" },
-    { "code": "DEMO_OBSTACLE_CLEAR_01", "kind": "clear" }
+    { "code": "EVENT_OBSTACLE_STOP", "kind": "assert", "clears": "EVENT_OBSTACLE_CLEAR" },
+    { "code": "EVENT_OBSTACLE_CLEAR", "kind": "clear" }
   ],
 
   "recovery": {
@@ -84,7 +84,7 @@
       {
         "id": "rc_stop_cleared",
         "label": "Obstacle-stop event cleared",
-        "check": { "event_state": "DEMO_OBSTACLE_STOP_01", "must_be": "cleared" }
+        "check": { "event_state": "EVENT_OBSTACLE_STOP", "must_be": "cleared" }
       }
     ]
   },
