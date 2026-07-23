@@ -58,11 +58,17 @@
     }
   },
   "events": {
-    "kind": "json_string_event",
-    "source_role": "error_events",
-    "code_field": "code",
-    "kind_field": "kind",
-    "assert_level": "WARN",
-    "clear_level": "INFO"
+    "obstacle_stop": {
+      "source_role": "error_events",
+      "matcher": { "kind": "json_string_event", "field": "code", "op": "exact", "value": "DEMO_OBSTACLE_STOP_01" },
+      "transition": "assert",
+      "output_code": "EVENT_OBSTACLE_STOP"
+    },
+    "obstacle_clear": {
+      "source_role": "error_events",
+      "matcher": { "kind": "json_string_event", "field": "code", "op": "exact", "value": "DEMO_OBSTACLE_CLEAR_01" },
+      "transition": "clear",
+      "output_code": "EVENT_OBSTACLE_CLEAR"
+    }
   }
 }

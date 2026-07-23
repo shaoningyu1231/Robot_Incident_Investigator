@@ -4,7 +4,7 @@
 Reads a real robot rosbag LOCALLY and writes a REDACTED manifest plus local-only
 helper files to <out>/, to check pipeline plumbing (can we open it, what is
 inside), NOT verdict correctness. A real bag has no ground truth; verdict
-correctness is validated only on synthetic scenarios (tools/eval_spec.py).
+correctness is validated only on synthetic scenarios (tools/eval_extractor.py).
 
 DATA BOUNDARY — do not violate:
   - Run locally only. Output goes under private_eval/ (git-ignored).

@@ -60,18 +60,18 @@
   "events": {
     "obstacle_stop": {
       "source_role": "rosout",
-      "match": {
-        "kind": "disabled_in_example",
-        "note": "Private deployments map this abstract event to local log/diagnostic patterns in topic_mapping.local.json."
-      },
-      "output_code": "EVENT_OBSTACLE_STOP"
+      "matcher": { "kind": "rosout_text", "op": "contains", "value": "<fill: substring of your stop log line>", "level_min": 8 },
+      "transition": "assert",
+      "output_code": "EVENT_OBSTACLE_STOP",
+      "emit": "edge"
     },
     "obstacle_clear": {
       "source_role": "rosout",
-      "match": {
-        "kind": "disabled_in_example"
-      },
-      "output_code": "EVENT_OBSTACLE_CLEAR"
+      "matcher": { "kind": "rosout_text", "op": "contains", "value": "<fill: substring of your clear log line>", "level_min": 8 },
+      "transition": "clear",
+      "output_code": "EVENT_OBSTACLE_CLEAR",
+      "emit": "edge"
     }
   }
+
 }
