@@ -6,12 +6,14 @@ logic runs on different robots without baking any robot's topics into the core:
 - **Incident spec** (`specs/*.json`) — the incident logic: which signals must be
   observed (front obstacle, stop event, velocity halt, …), how they corroborate,
   and the expected verdict. Robot-agnostic. References **abstract** event names,
-  never a real error code.
+  never a real error code. Format and compilation semantics (event-derived
+  search windows, `if_available` sources, positive-observation requirements):
+  see [`incident_spec.md`](incident_spec.md).
 - **Topic mapping profile** (`profiles/*.example.json`, or a private
   `*.local.json`) — how *this* robot's topics play the neutral roles the spec
   needs. Robot-specific. May be a public generic example or a private fleet file.
-- **Extractor** (planned) — reads a profile + a bag, and produces the neutral
-  intermediate representation the spec compiler already consumes
+- **Extractor** (`tools/extract_incident.py`) — reads a profile + a bag, and
+  produces the neutral intermediate representation the spec compiler consumes
   (`timeline.json`, `logs.jsonl`). It knows nothing about whether the source was
   a LexxPluss AMR or a TurtleBot.
 
@@ -84,7 +86,12 @@ source message matching several events is handled in profile order.
 
 - **Topic missing** → its metric is absent → the signal is absent / placeholder →
   the conclusion drops toward `low` / `insufficient_evidence`. Not a crash.
-- **Event missing** → no stop/clear event emitted; recovery/verdict degrade, no crash.
+- **Corroborating source this robot simply doesn't have** → a spec-level
+  `required: if_available` entry demotes it to a label-less corroboration member;
+  the verdict caps at `medium` instead of failing (see
+  [`incident_spec.md`](incident_spec.md)).
+- **Event missing** → no stop/clear event emitted; recovery/verdict degrade, and a
+  spec's event-derived search window falls back to its declared window. No crash.
 - **Unsupported msgtype / matcher kind / missing field / missing topic** → a
   structured warning; that role or event is skipped. Warnings are counts
   (`{code, role?, count}`) only — never real topic / node / code / diagnostic names
@@ -106,8 +113,11 @@ and the generic example intentionally leaves `front_distance_m` / real events
 unmapped). Verdict correctness is validated only on the synthetic scenarios
 (`tools/eval_extractor.py` — the canonical spec gate: profile matcher maps
 source-specific events to `EVENT_*`, the extractor emits neutral logs, the spec
-compiler consumes them, the verifier decides). `tools/eval_scenarios.py` covers the
-legacy hand-authored path. These remain the correctness oracle.
+compiler consumes them, the verifier decides). The gate runs the oracle in both
+declared- and derived-window modes and adds real-compatibility fixtures (missing
+corroboration metric → `medium`, no positive observation → `low`, reversing
+never halts → `low`). `tools/eval_scenarios.py` covers the legacy hand-authored
+path. These remain the correctness oracle.
 
 ## Planned example profiles
 

@@ -47,6 +47,8 @@ investigation anyone can drive in natural language.
 python tools/validate_incident.py     # data + rules        -> 20/20
 python backend/test_backend.py        # real uvicorn + HTTP/SSE -> 30/30
 python tools/eval_scenarios.py        # scenario discrimination -> 3/3 + recovery 2/2
+python tools/test_extractor.py        # extractor unit tests -> 10/10
+python tools/eval_extractor.py        # profile -> extract -> spec -> verifier, declared + derived windows + fixtures
 GEMINI_API_KEY=... python backend/online_check.py   # live Gemini acceptance -> 6/6
 ```
 Online acceptance passed 6/6 across 5 consecutive runs (temperature 0 + constrained prompt).
