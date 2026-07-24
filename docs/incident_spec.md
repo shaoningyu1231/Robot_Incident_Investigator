@@ -79,6 +79,12 @@ must discriminate. The `two_stop_cycles` synthetic scenario locks this in: a
 genuine obstacle stop verifies `high/ok` while a second stop/clear event pair
 with no obstacle observation and no halt verifies `low/ok`.
 
+Noisy real logs often republish the same fault; `coalesce_window_s` on the
+search-window strategy folds repeated publishes within the window of the last
+KEPT candidate into one (kept-relative — the same semantics as the extractor's
+`deduplicate_window_s`; default 0 = off). Occurrences beyond the window start a
+new candidate, so genuinely separate incidents still list separately.
+
 ## Honest degradation, by construction
 
 The verifier's ladder (`high` / `medium` / `low`, verdict `ok` / `conflicting`)

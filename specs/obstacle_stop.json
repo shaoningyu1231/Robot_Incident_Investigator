@@ -63,8 +63,10 @@
         "code": "EVENT_OBSTACLE_STOP",
         "pre_s": 1.0,
         "post_s": 3.0,
+        "coalesce_window_s": 2.0,
         "fallback": "declared"
       },
+      "_coalesce_note": "Candidate discovery folds repeated publishes of the anchor event within 2 s of the last kept candidate into one candidate (kept-relative, like the extractor's deduplicate_window_s). Does not affect window derivation (first occurrence) or verification.",
       "required_signals": [
         { "id": "lidar_front_zone", "required": "always" },
         { "id": "front_distance_zone", "required": "if_available" },
