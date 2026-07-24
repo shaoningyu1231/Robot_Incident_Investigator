@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [v0.2.1] - 2026-07-24
+
+Trust-hardening release: everything promotion points at now has a license, CI,
+an enforced privacy boundary, and a first-contact-hardened extractor.
+
+### Added
+
+- Apache-2.0 `LICENSE` (#23).
+- GitHub Actions CI running all five verification gates on Python 3.10/3.12,
+  plus enforced guards: a sha256 freeze check on the deterministic verifier
+  (`tools/incident_rules.py`), a privacy path check on tracked files, and a
+  `.dockerignore` allowlist compliance check (#23).
+- Discovery skeleton: `tools/private_eval_real_bag.py` now writes a
+  schema-valid topic mapping profile pre-filled by msgtype heuristics
+  (best-count topic per role, `_alternatives`, provisional markers), replacing
+  a flat template the extractor rejected (#24).
+- `msgtype_mismatch` structured warning (declared vs actual bag type,
+  warn-only) and named `ProfileError` messages for structurally unusable
+  profiles (#24).
+- Backend test locking the `deterministic` result mode contract (#25).
+
+### Changed
+
+- `.dockerignore` rewritten as an allowlist: the docker build context is now
+  exactly the public git boundary — private profiles, bags, and internal notes
+  cannot enter image layers (#23).
+- `emit: edge` no longer re-arms on unrelated interleaved traffic; a sibling
+  event match (typically the paired clear) re-arms it (#24).
+- README repositioned deterministic-first ("an LLM narrates, rules verify");
+  install instructions precede the verify block; the no-ROS-install property
+  is a headline; result mode `offline` renamed `deterministic`
+  across backend and UI copy (#25).
+
+### Fixed
+
+- Valid-JSON non-object event payloads no longer abort extraction; they count
+  as `event_parse_failed` (#24).
+
 ## [v0.2.0] - 2026-07-24
 
 ### Added
