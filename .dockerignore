@@ -1,14 +1,24 @@
-# Never ship real data, keys, bags, or eval scratch into the image
-sample_data/
-synthetic_bag/
-eval_build/
-eval_incidents/
-*.bag
-*.db3
-*.mcap
-.gemini_key
-*.key
-__pycache__/
-*.pyc
-.git/
-.gitignore
+# Allowlist build context: exclude EVERYTHING, then re-include only what the
+# demo image needs. The Dockerfile does `COPY . .`, so a blocklist here would
+# silently bake private files (real *.local.json profiles, bags, private_eval/,
+# internal notes) into image layers pushed to a registry. CI enforces that this
+# file starts with '*' and that no re-include resurrects a private path.
+*
+
+!backend/
+!tools/
+!incident/
+!specs/
+!profiles/
+!requirements.txt
+
+# Re-excludes inside the allowed directories (later rules win in dockerignore):
+# local-only, generated, or internal files that live under re-included paths.
+**/__pycache__/
+**/*.pyc
+**/*.local.json
+**/*.key
+backend/static/
+backend/interactions_client.py
+backend/interactions_check.py
+backend/frontend/index_verified.html

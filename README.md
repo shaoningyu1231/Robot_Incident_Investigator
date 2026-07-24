@@ -1,5 +1,9 @@
 # Robot Incident Investigator
 
+[![CI](https://github.com/shaoningyu1231/Robot_Incident_Investigator/actions/workflows/ci.yml/badge.svg)](https://github.com/shaoningyu1231/Robot_Incident_Investigator/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](CONTRIBUTING.md)
+
 **Evidence-grounded, robot-agnostic incident investigation for autonomous robots.**
 
 Ask *why a robot stopped* and get a grounded, timestamped answer. Incident logic
