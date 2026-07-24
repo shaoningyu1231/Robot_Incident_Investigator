@@ -209,7 +209,7 @@ async def investigate_stream(request):
         except Exception as e:  # 兜底:服务端记脱敏详情,前端只给固定信息(不泄漏内部细节)
             print(f"[app] stream error: {_scrub(repr(e))}", file=sys.stderr)
             safe = {"answer": "Investigation failed due to a server error. Please retry.",
-                    "mode": "offline", "model": None, "tool_calls": [], "images_submitted": 0,
+                    "mode": "deterministic", "model": None, "tool_calls": [], "images_submitted": 0,
                     "attached_images": [], "trace": []}
             yield f"event: result\ndata: {json.dumps(safe)}\n\n"
 

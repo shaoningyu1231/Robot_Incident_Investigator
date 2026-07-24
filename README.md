@@ -4,17 +4,23 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](CONTRIBUTING.md)
 
-**Evidence-grounded, robot-agnostic incident investigation for autonomous robots.**
+**Why did my robot stop? Deterministic root-cause analysis for rosbags — an LLM
+narrates, rules verify.**
 
-Ask *why a robot stopped* and get a grounded, timestamped answer. Incident logic
-lives in reusable **specs**, robot specifics live in **topic mapping profiles**,
-a profile-driven **extractor** turns ROS1 bags into neutral evidence, and a small
-**deterministic verifier** decides how strong that evidence is
-(`high / medium / low`, `ok / conflicting`). An LLM narrates the investigation;
-the rules verify it — and missing evidence lowers a verdict, never inflates it.
+Give it a ROS1 bag plus a topic mapping profile. The extractor turns the bag
+into neutral evidence; reusable, robot-agnostic **specs** compile that evidence
+for candidate incident windows; a small **deterministic verifier** grades each
+hypothesis (`high / medium / low`, `ok / conflicting`). Missing evidence lowers
+a verdict, never inflates it. The LLM front end is optional — it narrates those
+verified results; the rules verify every claim.
+
+- **No ROS installation required** — pure Python (`rosbags`), runs offline on
+  any laptop; analyze bags from EOL ROS1 Noetic robots without touching the robot.
+- **Your data never leaves your machine** — real topics, error codes, and TF
+  frames stay in git-ignored local profiles (see the privacy section below).
 
 Born as the winning entry of the Gemini AI Hackathon @ Google Japan; now a
-generalized open-source investigation layer (the hosted Gemini demo is one
+generalized open-source investigation layer (the Gemini demo is one optional
 frontend over it, not its boundary).
 
 ![Rerun-linked investigation: clicking a cited timestamp in the answer seeks the embedded Rerun viewer](docs/rerun_linked.gif)
@@ -73,6 +79,16 @@ agent tools  ->  list_incident_candidates / verify_conclusion / inspect / search
 
 ## Verify it yourself (reproducible)
 
+Install first (a venv is required on PEP 668 systems such as Ubuntu 23.04+ /
+Debian 12; Python 3.10+):
+
+```
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements-dev.txt
+```
+
+Then every gate runs headless in seconds — the same gates CI enforces:
+
 ```
 python tools/validate_incident.py     # data + rules
 python backend/test_backend.py        # real uvicorn + HTTP/SSE, agent tools
@@ -100,16 +116,17 @@ readiness. `evidence_strength` reflects evidence completeness and consistency,
 **not** a probability that the root cause is correct. Contradictory sensors
 yield *insufficient evidence* rather than an invented answer.
 
-## Hosted demo — Gemini on Cloud Run (demo implementation, optional)
+## Optional LLM narration front end (Gemini demo)
 
-The hosted demo is optional; the recommended path is local-first (see the
-quickstart above). The demo app — originally built for the hackathon, hosted
-separately when available — is a Starlette backend driving a Gemini
-(`gemini-2.5-flash`) function-calling loop: multimodal `inlineData` image parts
-(LiDAR + chart PNGs are sent back to the model), SSE streaming tool progress,
-multi-turn follow-ups, and a deterministic offline fallback when Gemini or the
-network is unavailable. It is one frontend over the deterministic layer above —
-swap the model or the UI and the evidence rules stay the same. Run it yourself:
+The deterministic layer needs no LLM and no API key — the recommended path is
+local-first (see the quickstart above). The optional demo app — originally
+built for the hackathon — adds conversational narration on top: a Starlette
+backend driving a Gemini (`gemini-2.5-flash`) function-calling loop with
+multimodal `inlineData` image parts (LiDAR + chart PNGs are sent back to the
+model), SSE streaming tool progress, and multi-turn follow-ups. Without a key,
+or when Gemini is unreachable, the same app answers in deterministic mode. It
+is one frontend over the deterministic layer above — swap the model or the UI
+and the evidence rules stay the same. Run it yourself:
 
 ```
 GEMINI_API_KEY="$(cat ~/.gemini_key)" PORT=8000 python backend/app.py   # http://127.0.0.1:8000
@@ -125,7 +142,7 @@ answer and the viewer time cursor jumps to that instant — LiDAR, telemetry,
 event log, and evidence markers all scrub together.
 
 This runs **locally** — the 47 MB viewer and the `.rrd` are dev-only and
-git-ignored, so the public Cloud Run demo stays lightweight:
+git-ignored; Rerun assets are local-only and are not part of the default app:
 
 ```
 pip install -r requirements-dev.txt          # includes rerun-sdk (dev only)
@@ -143,6 +160,6 @@ python -m rerun rerun_build/demo_obstacle_stop_01.rrd    # add --web-viewer if h
 
 The exporter reuses the same synthetic source as the incident assets, so the
 recording cannot drift from `timeline.json`. Rerun is an **optional dev
-dependency**, **not** part of the Cloud Run runtime; it is open source under
+dependency**, **not** part of the app runtime; it is open source under
 permissive licenses (MIT OR Apache-2.0) — see
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

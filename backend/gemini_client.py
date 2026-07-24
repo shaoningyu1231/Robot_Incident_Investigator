@@ -378,11 +378,11 @@ class GeminiInvestigator:
             out["fallback_reason"] = why
         return out
 
-    # ---- 离线:确定性回退(无 Gemini 也能演示工具链)----
+    # ---- Deterministic mode: rule-based investigation, no LLM required ----
     def _offline(self, question, why, history=None):
         cid = self.inc.metadata["ground_truth"]["primary_conclusion_id"]
         insp = R.inspect_incident_window(self.inc, 9.5, 11.8, conclusion_id=cid,
-                                         reason="offline default investigation window")
+                                         reason="deterministic default investigation window")
         es = insp["evidence_strength"]
         rec_block = R.check_recovery_readiness(self.inc, (12.0, 18.0))
         rec_clear = R.check_recovery_readiness(self.inc, (19.0, 25.0))
@@ -390,7 +390,7 @@ class GeminiInvestigator:
         cited = ", ".join(f"{ev[e]['t']}s {e}" for e in
                           next(c for c in self.inc.annotations["conclusions"] if c["id"] == cid)["required_evidence"])
         answer = (
-            f"[offline fallback — {why}] "
+            f"[deterministic mode — {why}] "
             f"Root cause: {self.inc.metadata['ground_truth']['root_cause']} "
             f"Evidence ({es['level']}): {cited}. "
             f"Recovery while stopped (12–18s): {rec_block['recovery_readiness']}; "
@@ -401,6 +401,6 @@ class GeminiInvestigator:
         trace = [{"tool": "inspect_incident_window", "args": {"start": 9.5, "end": 11.8}},
                  {"tool": "check_recovery_readiness", "args": {"evaluation_window": [12, 18]}},
                  {"tool": "check_recovery_readiness", "args": {"evaluation_window": [19, 25]}}]
-        out = self._result("offline", answer, trace, media, question=question, history=history, why=why)
-        out["model"] = None  # 离线不归属任何模型
+        out = self._result("deterministic", answer, trace, media, question=question, history=history, why=why)
+        out["model"] = None  # deterministic answers are attributed to no model
         return out
