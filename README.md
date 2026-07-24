@@ -16,7 +16,6 @@ frontend over it, not its boundary).
 ![Rerun-linked investigation: clicking a cited timestamp in the answer seeks the embedded Rerun viewer](docs/rerun_linked.gif)
 
 - **Quickstart (~10 min, three paths):** [`docs/quickstart_ros1.md`](docs/quickstart_ros1.md)
-- **Live demo (Cloud Run):** https://robot-incident-investigator-1055792538383.asia-northeast1.run.app
 - **Deep dives:** [`docs/incident_spec.md`](docs/incident_spec.md) · [`docs/topic_mapping.md`](docs/topic_mapping.md)
 
 ## Why it matters
@@ -97,14 +96,16 @@ readiness. `evidence_strength` reflects evidence completeness and consistency,
 **not** a probability that the root cause is correct. Contradictory sensors
 yield *insufficient evidence* rather than an invented answer.
 
-## Hosted demo — Gemini on Cloud Run (demo implementation)
+## Hosted demo — Gemini on Cloud Run (demo implementation, optional)
 
-The live app is a Starlette backend driving a Gemini (`gemini-2.5-flash`)
-function-calling loop: multimodal `inlineData` image parts (LiDAR + chart PNGs
-are sent back to the model), SSE streaming tool progress, multi-turn follow-ups,
-and a deterministic offline fallback when Gemini or the network is unavailable.
-It is one frontend over the deterministic layer above — swap the model or the
-UI and the evidence rules stay the same.
+The hosted demo is optional; the recommended path is local-first (see the
+quickstart above). The demo app — originally built for the hackathon, hosted
+separately when available — is a Starlette backend driving a Gemini
+(`gemini-2.5-flash`) function-calling loop: multimodal `inlineData` image parts
+(LiDAR + chart PNGs are sent back to the model), SSE streaming tool progress,
+multi-turn follow-ups, and a deterministic offline fallback when Gemini or the
+network is unavailable. It is one frontend over the deterministic layer above —
+swap the model or the UI and the evidence rules stay the same. Run it yourself:
 
 ```
 GEMINI_API_KEY="$(cat ~/.gemini_key)" PORT=8000 python backend/app.py   # http://127.0.0.1:8000
