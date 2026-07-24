@@ -1,0 +1,49 @@
+name: New robot profile
+description: Report mapping a new robot onto the neutral roles (what worked, what blocked).
+title: "[profile] "
+labels: ["profile"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Profiles with real fleet topics stay **local** (`*.local.json`, never
+        committed). What CAN be contributed publicly: a generic, commit-safe
+        example profile (like `profiles/generic_ros1.example.json`), extractor
+        gaps you hit, and redacted smoke results. See `docs/topic_mapping.md`.
+  - type: input
+    id: robot
+    attributes:
+      label: Robot family / ROS version
+      placeholder: "differential-drive AMR, ROS1 Noetic"
+    validations:
+      required: true
+  - type: checkboxes
+    id: roles
+    attributes:
+      label: Roles you could map
+      options:
+        - label: front_scan (LaserScan)
+        - label: cmd_vel
+        - label: actual_vel / odom
+        - label: rosout
+        - label: diag
+        - label: tf (localization transform)
+        - label: events (stop/clear via rosout / diagnostics / custom topic)
+  - type: textarea
+    id: results
+    attributes:
+      label: Redacted smoke results
+      description: Paste the smoke PASS/FAIL checklist and/or summary.redacted.json. Redacted only.
+      render: text
+  - type: textarea
+    id: gaps
+    attributes:
+      label: What blocked you
+      description: Missing extract kinds, matcher limitations, msgtype issues — described abstractly.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: This issue contains no real topic names, raw logs, error codes, or TF frame ids.
+          required: true
