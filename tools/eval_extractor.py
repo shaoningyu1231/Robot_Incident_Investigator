@@ -32,6 +32,12 @@ Coalescing (repeated publishes): a fault republished as EVENT_OBSTACLE_STOP at
 removed the same logs must yield three — proving the default-off behavior is
 unchanged and the spec value is what protects against candidate explosion.
 
+Localization-jump spec (specs/localization_jump.json — proves the spec layer is
+not obstacle-only; same compiler, same unchanged verifier): a 1.5 m TF jump
+followed by stop event + halt must verify high/ok; the same stop event + halt
+with a smooth transform stream must verify low/ok (the jump is required positive
+evidence). Run in both window modes like the obstacle spec.
+
 Generated assets are git-ignored (eval_build/).
 Run: <venv>/python3 tools/eval_extractor.py
 """
@@ -79,11 +85,12 @@ def build(name):
     return load_incident(out)
 
 
-def verify(inc, window_mode):
+def verify(inc, window_mode, spec=None, conc=None):
     """Compile + verify with the SAME window the compiler resolved."""
-    ann = SP.compile_spec(SPEC, inc, CONC, window_mode=window_mode)
+    spec, conc = spec or SPEC, conc or CONC
+    ann = SP.compile_spec(spec, inc, conc, window_mode=window_mode)
     win = tuple(ann["compile_info"]["window"])
-    es = R.evidence_strength(inc.replace(annotations=ann), CONC, win)
+    es = R.evidence_strength(inc.replace(annotations=ann), conc, win)
     return ann, es
 
 
@@ -192,6 +199,26 @@ n0 = len(SP.list_incident_candidates(spec_off, rep, CONC))
 c_ok = n0 == 3
 allok &= c_ok
 print(f"coalescing off (default):  same logs -> 3 candidates {'PASS' if c_ok else 'FAIL'} (got {n0})")
+
+TSPEC = json.loads((ROOT / "specs" / "localization_jump.json").read_text())
+TCONC = "concl_localization_jump_stop"
+TEXP = TSPEC["expected"]["against"]
+tincs = {name: build(name) for name in sorted(TEXP)}
+for window_mode, title in (("declared", "declared-window"), ("auto", "derived-window")):
+    print(f"=== localization-jump spec eval [{title}] (same compiler/verifier) ===")
+    n_ok = 0
+    for name in sorted(TEXP):
+        ann, es = verify(tincs[name], window_mode, spec=TSPEC, conc=TCONC)
+        want = TEXP[name]
+        ok = es["level"] == want["level"] and es["verdict"] == want["verdict"]
+        allok &= ok
+        n_ok += ok
+        print(f"{name:24} window={ann['compile_info']['window_mode']:18} "
+              f"expect={want['level']}/{want['verdict']:12} "
+              f"got={es['level']}/{es['verdict']:12} {'PASS' if ok else 'FAIL'}")
+        if not ok:
+            print(f"    checks={es['checks']} missing={es['missing']}")
+    print(f"--- {n_ok}/{len(TEXP)} tf scenarios passed ({title}) ---")
 
 inc = hero.replace(annotations=SP.compile_spec(SPEC, hero, CONC))
 rec_ok = True

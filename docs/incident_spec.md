@@ -1,5 +1,10 @@
 # Incident specs
 
+Two specs ship today: `specs/obstacle_stop.json` (obstacle-triggered safety
+stop) and `specs/localization_jump.json` (localization/TF-jump stop) — the same
+compiler and the same unchanged verifier serve both, which is the point: adding
+an incident type means writing a spec, not code.
+
 An incident spec (`specs/*.json`) is the robot-agnostic half of an investigation:
 it declares WHAT evidence a conclusion needs and how to observe it in the neutral
 intermediate representation (`timeline.json` / `logs.jsonl`) — never how a

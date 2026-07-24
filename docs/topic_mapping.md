@@ -62,13 +62,20 @@ optional: if a robot does not publish it, the dependent signal simply degrades
   scan zero is not forward), `range_min_m`, `range_max_m`, `output_metric`.
 - `scalar_field` — pull one numeric field (e.g. `twist.twist.linear.x`) into an
   `output_metric`. The field path depends on `msgtype`.
-- *(later)* `tf_jump` — discontinuity in a tf transform.
+- `tf_jump` — per-sample discontinuity of ONE parent→child transform in a
+  `tf2_msgs/msg/TFMessage` stream: translation delta between consecutive samples
+  (`output_metric`, e.g. `tf_jump_m`) and optional yaw delta
+  (`yaw_output_metric`, e.g. `tf_yaw_jump_rad`). Frame names live in the profile
+  (private-safe); the jump threshold lives in the incident spec, so the
+  extractor stays mechanical.
 
 Resampling: metrics are floor-bucketed to `resample.rate_hz` (default 10 Hz); the
-per-metric `aggregation` defaults to `min` for `front_min_range` and `last` for
-`scalar_field`. `output_metric` names must match the neutral timeline schema the
+per-metric `aggregation` defaults to `min` for `front_min_range`, `last` for
+`scalar_field`, and `max` for `tf_jump` (a single-sample jump must survive
+bucketing). `output_metric` names must match the neutral timeline schema the
 compiler reads (`front_min_range_m`, `front_distance_m`, `planner_speed_mps`,
-`applied_speed_mps`, `actual_speed_mps`, `safety_state`).
+`applied_speed_mps`, `actual_speed_mps`, `safety_state`, `tf_jump_m`,
+`tf_yaw_jump_rad`).
 
 ### Event matchers (per abstract event)
 

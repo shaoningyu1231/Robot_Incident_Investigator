@@ -13,12 +13,14 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 from rosbags.rosbag1 import Reader
-from rosbags.typesys import Stores, get_typestore
+from rosbags.typesys import Stores, get_types_from_msg, get_typestore
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import scenario as S
 
 TS = get_typestore(Stores.ROS1_NOETIC)
+TS.register(get_types_from_msg("geometry_msgs/TransformStamped[] transforms",
+                               "tf2_msgs/msg/TFMessage"))
 ROOT = Path(__file__).resolve().parents[1]
 
 FRONT_SECTOR_HALF_DEG = 15.0                         # front angular sector for front_min_range_m

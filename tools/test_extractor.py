@@ -19,9 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import extract_incident as EX
 from rosbags.rosbag1 import Writer
-from rosbags.typesys import Stores, get_typestore
+from rosbags.typesys import Stores, get_types_from_msg, get_typestore
 
 TS = get_typestore(Stores.ROS1_NOETIC)
+TS.register(get_types_from_msg("geometry_msgs/TransformStamped[] transforms",
+                               "tf2_msgs/msg/TFMessage"))
 T = TS.types
 passed = failed = 0
 
@@ -150,6 +152,43 @@ with tempfile.TemporaryDirectory() as tmp:
     build_diag_bag(tmp / "d2.bag", [(0, "ok"), (1, "battery_low")])   # nothing at ERROR + "safety"
     EX.run(tmp / "d2.bag", prof, tmp / "out2")
     check("diagnostic no-match -> no events emitted", len(_logs(tmp / "out2")) == 0)
+
+
+# --- tf_jump: consecutive-sample deltas, spike survives max bucketing, decoy child ignored ---
+def build_tf_bag(path, samples, base=3000.0):
+    import math as _m
+    TFMsg = T["tf2_msgs/msg/TFMessage"]; TrS = T["geometry_msgs/msg/TransformStamped"]
+    Tr = T["geometry_msgs/msg/Transform"]; V3 = T["geometry_msgs/msg/Vector3"]
+    Quat = T["geometry_msgs/msg/Quaternion"]; Hdr = T["std_msgs/msg/Header"]
+    Time = T["builtin_interfaces/msg/Time"]
+    with Writer(path) as w:
+        conn = w.add_connection("/tf", "tf2_msgs/msg/TFMessage", typestore=TS)
+        for i, (dt, x, yaw) in enumerate(samples):
+            t = base + dt
+            hdr = Hdr(seq=i, stamp=Time(sec=int(t), nanosec=int((t % 1) * 1e9)), frame_id="map")
+            good = TrS(header=hdr, child_frame_id="odom",
+                       transform=Tr(translation=V3(x=float(x), y=0.0, z=0.0),
+                                    rotation=Quat(x=0.0, y=0.0, z=_m.sin(yaw / 2), w=_m.cos(yaw / 2))))
+            decoy = TrS(header=hdr, child_frame_id="base_link",
+                        transform=Tr(translation=V3(x=100.0 * i, y=0.0, z=0.0),
+                                     rotation=Quat(x=0.0, y=0.0, z=0.0, w=1.0)))
+            m = TFMsg(transforms=[decoy, good])
+            w.write(conn, int(t * 1e9), TS.serialize_ros1(m, "tf2_msgs/msg/TFMessage"))
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp)
+    build_tf_bag(tmp / "tf.bag", [(0.0, 0.0, 0.0), (0.1, 0.05, 0.0), (0.2, 0.10, 0.0), (0.3, 1.15, 0.5)])
+    prof = {"profile_id": "tf", "roles": {"tf": {"topic": "/tf", "msgtype": "tf2_msgs/msg/TFMessage",
+            "extract": {"kind": "tf_jump", "parent_frame": "map", "child_frame": "odom",
+                        "output_metric": "tf_jump_m", "yaw_output_metric": "tf_yaw_jump_rad"}}}}
+    EX.run(tmp / "tf.bag", prof, tmp / "out")
+    rows = {m["t"]: m for m in json.loads((tmp / "out" / "timeline.json").read_text())["tracks"]["metrics"]}
+    check("tf_jump: per-sample deltas, decoy child ignored, jump spike preserved",
+          abs(rows[0.1]["tf_jump_m"] - 0.05) < 1e-6 and abs(rows[0.2]["tf_jump_m"] - 0.05) < 1e-6
+          and abs(rows[0.3]["tf_jump_m"] - 1.05) < 1e-6 and "tf_jump_m" not in rows.get(0.0, {}))
+    check("tf_jump: yaw delta emitted alongside translation",
+          abs(rows[0.3]["tf_yaw_jump_rad"] - 0.5) < 1e-3 and rows[0.2]["tf_yaw_jump_rad"] == 0.0)
 
 print(f"--- {passed}/{passed + failed} extractor tests passed ---")
 sys.exit(0 if failed == 0 else 1)

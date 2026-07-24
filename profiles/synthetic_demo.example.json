@@ -55,6 +55,17 @@
     "error_events": {
       "topic": "/demo/error_events",
       "msgtype": "std_msgs/msg/String"
+    },
+    "tf": {
+      "topic": "/demo/tf",
+      "msgtype": "tf2_msgs/msg/TFMessage",
+      "extract": {
+        "kind": "tf_jump",
+        "parent_frame": "demo_map",
+        "child_frame": "demo_odom",
+        "output_metric": "tf_jump_m",
+        "yaw_output_metric": "tf_yaw_jump_rad"
+      }
     }
   },
   "events": {
@@ -69,6 +80,18 @@
       "matcher": { "kind": "json_string_event", "field": "code", "op": "exact", "value": "DEMO_OBSTACLE_CLEAR_01" },
       "transition": "clear",
       "output_code": "EVENT_OBSTACLE_CLEAR"
+    },
+    "localization_stop": {
+      "source_role": "error_events",
+      "matcher": { "kind": "json_string_event", "field": "code", "op": "exact", "value": "DEMO_LOC_STOP_01" },
+      "transition": "assert",
+      "output_code": "EVENT_LOCALIZATION_STOP"
+    },
+    "localization_clear": {
+      "source_role": "error_events",
+      "matcher": { "kind": "json_string_event", "field": "code", "op": "exact", "value": "DEMO_LOC_CLEAR_01" },
+      "transition": "clear",
+      "output_code": "EVENT_LOCALIZATION_CLEAR"
     }
   }
 }
