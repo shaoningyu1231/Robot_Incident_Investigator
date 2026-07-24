@@ -31,6 +31,7 @@ import argparse
 import hashlib
 import json
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -55,7 +56,97 @@ def _redact_msgtype(mt):
     return "custom_msgtype_" + hashlib.sha1(mt.encode("utf-8")).hexdigest()[:8]
 
 
-MAPPING_SLOTS = ["front_scan", "cmd_vel", "actual_vel", "odom", "rosout", "diag", "tf"]
+# Heuristic role suggestions: which standard msgtype backs which neutral role,
+# and the extract block each role usually wants. Suggestions are PROVISIONAL —
+# the skeleton marks them so and the user must review every pick.
+ROLE_MSGTYPES = {
+    "front_scan": "sensor_msgs/msg/LaserScan",
+    "cmd_vel": "geometry_msgs/msg/Twist",
+    "actual_vel": "nav_msgs/msg/Odometry",
+    "rosout": "rosgraph_msgs/msg/Log",
+    "diag": "diagnostic_msgs/msg/DiagnosticArray",
+    "tf": "tf2_msgs/msg/TFMessage",
+}
+ROLE_EXTRACTS = {
+    "front_scan": {"kind": "front_min_range", "front_sector_deg": 15.0, "front_axis_rad": 0.0,
+                   "range_min_m": 0.05, "range_max_m": 10.0, "output_metric": "front_min_range_m"},
+    "cmd_vel": {"kind": "scalar_field", "field": "linear.x", "output_metric": "planner_speed_mps"},
+    "actual_vel": {"kind": "scalar_field", "field": "twist.twist.linear.x",
+                   "output_metric": "actual_speed_mps"},
+    "tf": {"kind": "tf_jump", "parent_frame": "<FILL: localization parent frame>",
+           "child_frame": "<FILL: localization child frame>",
+           "output_metric": "tf_jump_m", "yaw_output_metric": "tf_yaw_jump_rad"},
+}
+
+
+def _norm_msgtype(mt):
+    parts = mt.strip("/").split("/")
+    return f"{parts[0]}/msg/{parts[-1]}" if len(parts) >= 2 else mt
+
+
+def suggest_profile(topics, case_id):
+    """Build a schema-valid roles/events profile skeleton from the bag's topic
+    index ({real_topic: {msgtype, count}}). Pure msgtype heuristics: per role,
+    pick the highest-count topic of the expected type and list the rest under
+    `_alternatives`. Contains REAL topic names -> output is LOCAL ONLY."""
+    by_type = defaultdict(list)
+    for name, info in topics.items():
+        by_type[_norm_msgtype(info["msgtype"])].append((info["count"], name))
+    roles, unmapped = {}, []
+    for role, mt in ROLE_MSGTYPES.items():
+        cands = sorted(by_type.get(mt, []), reverse=True)
+        if not cands:
+            unmapped.append(role)
+            continue
+        role_def = {"topic": cands[0][1], "msgtype": mt, "_status": "provisional"}
+        if len(cands) > 1:
+            role_def["_alternatives"] = [n for _, n in cands[1:]]
+        if role in ROLE_EXTRACTS:
+            role_def["extract"] = dict(ROLE_EXTRACTS[role])
+        roles[role] = role_def
+    if "actual_vel" in roles:   # odom role rides the same Odometry topic, no extract of its own
+        roles["odom"] = {"topic": roles["actual_vel"]["topic"],
+                         "msgtype": "nav_msgs/msg/Odometry", "_status": "provisional"}
+    else:
+        unmapped.append("odom")
+
+    events = {}
+    ev_role = "rosout" if "rosout" in roles else ("diag" if "diag" in roles else None)
+    if ev_role == "rosout":
+        stop_matcher = {"kind": "rosout_text", "op": "contains",
+                        "value": "<FILL: substring of the real stop log line>", "level_min": 8}
+        clear_matcher = {"kind": "rosout_text", "op": "contains",
+                         "value": "<FILL: substring of the real clear log line>"}
+    elif ev_role == "diag":
+        stop_matcher = {"kind": "diagnostic_status", "field": "name", "op": "contains",
+                        "value": "<FILL: substring of the real status name>", "level_min": 2}
+        clear_matcher = {"kind": "diagnostic_status", "field": "name", "op": "contains",
+                         "value": "<FILL: substring of the real status name>"}
+    if ev_role:
+        events = {
+            "stop_event": {"source_role": ev_role, "matcher": stop_matcher,
+                           "transition": "assert", "output_code": "EVENT_OBSTACLE_STOP",
+                           "_status": "provisional"},
+            "clear_event": {"source_role": ev_role, "matcher": clear_matcher,
+                            "transition": "clear", "output_code": "EVENT_OBSTACLE_CLEAR",
+                            "_status": "provisional"},
+        }
+    return {
+        "_about": "Auto-suggested SKELETON from msgtype heuristics — every mapping is provisional; "
+                  "review each pick against topic_candidates.local.txt. Copy to "
+                  "topic_mapping.local.json, fix wrong picks, fill every <FILL: ...>, delete "
+                  "roles/events you don't have. LOCAL ONLY: contains real topic names — never "
+                  "commit, upload, or share. Field reference: docs/topic_mapping.md",
+        "_unmapped_roles": unmapped,
+        "profile_version": "0.1",
+        "profile_id": case_id,
+        "robot_family": "<FILL: your robot family>",
+        "privacy": {"contains_private_topics": True, "commit_safe": False},
+        "time": {"source": "bag_message_time"},
+        "synchronization": {"default_max_skew_s": 0.2},
+        "roles": roles,
+        "events": events,
+    }
 
 
 def main():
@@ -107,18 +198,19 @@ def main():
               for name, info in sorted(topics.items(), key=lambda kv: (kv[1]["msgtype"], -kv[1]["count"]))]
     (out / "topic_candidates.local.txt").write_text("\n".join(lines) + "\n")
 
-    # --- topic_mapping.local.example.json (template to copy -> .local.json and fill) ---
-    example = {"_about": "Copy to topic_mapping.local.json (git-ignored) and fill each slot "
-                         "with a REAL topic name from topic_candidates.local.txt. Keep it local; "
-                         "share only sanitized labels with the assistant.",
-               **{slot: "" for slot in MAPPING_SLOTS}}
-    (out / "topic_mapping.local.example.json").write_text(json.dumps(example, indent=2))
+    # --- topic_mapping.skeleton.local.json (schema-valid, heuristically pre-filled;
+    #     copy -> topic_mapping.local.json, review every pick, fill <FILL: ...>) ---
+    skeleton = suggest_profile(topics, out.name)
+    (out / "topic_mapping.skeleton.local.json").write_text(json.dumps(skeleton, indent=2))
 
     print(f"[private-eval] out={out}")
     print(f"[private-eval] size={size_mb}MB duration={duration_s}s "
           f"topics={len(topics)} messages={manifest['message_count']}")
+    mapped = [r for r in skeleton["roles"]]
+    print(f"[private-eval] skeleton roles suggested={mapped} "
+          f"unmapped={skeleton['_unmapped_roles']} (heuristic — review every pick)")
     print("[private-eval] wrote manifest.redacted.json (safe) + "
-          "topic_candidates.local.txt + topic_mapping.local.example.json (LOCAL ONLY)")
+          "topic_candidates.local.txt + topic_mapping.skeleton.local.json (LOCAL ONLY)")
 
 
 if __name__ == "__main__":

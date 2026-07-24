@@ -88,10 +88,16 @@ intentionally unsupported):
 - `diagnostic_status` — `diagnostic_msgs/DiagnosticArray`; match a status `field`
   (name/message) `op` `value`, optional `level_min`. Names are never emitted.
 
-`emit: edge` (or `deduplicate_window_s`) collapses repeated state republishes so a
-DiagnosticArray / rosout stream does not bloat the log. The extractor validates that
-`output_code` is unique, `source_role` exists, and `matcher.kind` is supported; a
-source message matching several events is handled in profile order.
+`emit: edge` collapses repeated state republishes so a DiagnosticArray / rosout
+stream does not bloat the log: after an event emits, further matches are
+suppressed until a message on the same topic matches a *different* event (the
+channel changed state — typically the paired clear). Unrelated interleaved
+traffic (other nodes' log lines that match no event) does not re-arm the edge.
+`deduplicate_window_s` is the time-window alternative. The extractor validates
+that `output_code` is present and unique, `source_role` exists, and
+`matcher.kind` is supported; a source message matching several events is handled
+in profile order. A structurally unusable profile (missing `roles`, a role
+without a `topic`) fails fast with a named `ProfileError` instead of a traceback.
 
 ## Graceful degradation
 
@@ -103,10 +109,12 @@ source message matching several events is handled in profile order.
   [`incident_spec.md`](incident_spec.md)).
 - **Event missing** → no stop/clear event emitted; recovery/verdict degrade, and a
   spec's event-derived search window falls back to its declared window. No crash.
-- **Unsupported msgtype / matcher kind / missing field / missing topic** → a
-  structured warning; that role or event is skipped. Warnings are counts
-  (`{code, role?, count}`) only — never real topic / node / code / diagnostic names
-  or log text.
+- **Declared msgtype mismatch / undecodable message / unsupported matcher kind /
+  missing field / missing topic** → a structured warning; that message, role, or
+  event is skipped (`msgtype_mismatch` is warn-only: decoding uses the bag
+  connection's actual type, so a wrong declaration is flagged but does not stop
+  extraction). Warnings are counts (`{code, role?, count}`) only — never real
+  topic / node / code / diagnostic names or log text.
 
 ## Privacy rules
 

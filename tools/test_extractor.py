@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Extractor hardening tests (no real bag; builds a tiny synthetic bag in a tmp dir).
 
-Covers the two correctness fixes:
+Covers the correctness fixes:
   - a topic backing multiple roles still runs the extract-bearing role
   - resample bucketing is correct at non-10 Hz and aggregates per rule (min/last)
-and the raw / valid / output counts.
+  - raw / valid / output counts
+and the real-bag robustness regressions:
+  - valid-JSON non-dict event payload degrades (event_parse_failed), never crashes
+  - emit:edge survives interleaved non-matching traffic; a sibling match re-arms it
+  - declared-msgtype mismatch is a warn-only structured warning
+  - a structurally unusable profile fails fast with a named ProfileError
 
 Run: <venv>/python3 tools/test_extractor.py
 """
@@ -189,6 +194,121 @@ with tempfile.TemporaryDirectory() as tmp:
           and abs(rows[0.3]["tf_jump_m"] - 1.05) < 1e-6 and "tf_jump_m" not in rows.get(0.0, {}))
     check("tf_jump: yaw delta emitted alongside translation",
           abs(rows[0.3]["tf_yaw_jump_rad"] - 0.5) < 1e-3 and rows[0.2]["tf_yaw_jump_rad"] == 0.0)
+
+
+# --- real-bag robustness regressions ---
+def build_string_bag(path, rows, topic="/events", base=4000.0):
+    S = T["std_msgs/msg/String"]
+    with Writer(path) as w:
+        conn = w.add_connection(topic, "std_msgs/msg/String", typestore=TS)
+        for dt, data in rows:
+            t = base + dt
+            w.write(conn, int(t * 1e9), TS.serialize_ros1(S(data=data), "std_msgs/msg/String"))
+
+
+def _warns(outdir):
+    return {(w["code"], w.get("role")): w["count"]
+            for w in json.loads((outdir / "metadata.json").read_text())["warnings"]}
+
+
+# valid-JSON non-dict payloads (array/number/string) must degrade, not crash the run
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp)
+    build_string_bag(tmp / "j.bag", [(0.0, "[1, 2]"), (1.0, '"just a string"'),
+                                     (2.0, '{"code": "STOP1"}')])
+    prof = {"profile_id": "j", "roles": {"error_events": {"topic": "/events", "msgtype": "std_msgs/msg/String"}},
+            "events": {"stop": {"source_role": "error_events",
+                       "matcher": {"kind": "json_string_event", "field": "code", "op": "exact", "value": "STOP1"},
+                       "transition": "assert", "output_code": "EVENT_OBSTACLE_STOP"}}}
+    EX.run(tmp / "j.bag", prof, tmp / "out")
+    lg = _logs(tmp / "out")
+    check("non-dict JSON payloads: run completes, dict payload still matches",
+          len(lg) == 1 and lg[0]["code"] == "EVENT_OBSTACLE_STOP")
+    check("non-dict JSON payloads counted as event_parse_failed x2",
+          _warns(tmp / "out").get(("event_parse_failed", None)) == 2)
+
+# emit:edge must not be re-armed by interleaved non-matching rosout traffic
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp); bag = tmp / "i.bag"
+    build_log_bag(bag, [(0, 8, "safety", "OBSTACLE in safety zone"),
+                        (1, 2, "nav", "waypoint reached"),          # unrelated chatter
+                        (2, 8, "safety", "OBSTACLE in safety zone"),
+                        (3, 2, "nav", "battery at 80 percent"),     # unrelated chatter
+                        (4, 8, "safety", "OBSTACLE in safety zone")])
+    prof = {"profile_id": "i", "roles": {"rosout": {"topic": "/rosout", "msgtype": "rosgraph_msgs/msg/Log"}},
+            "events": {"obstacle_stop": {"source_role": "rosout",
+                       "matcher": {"kind": "rosout_text", "op": "contains", "value": "OBSTACLE", "level_min": 8},
+                       "transition": "assert", "output_code": "EVENT_OBSTACLE_STOP", "emit": "edge"}}}
+    EX.run(bag, prof, tmp / "out")
+    check("edge: interleaved non-matching traffic does not re-arm (1 emit, not 3)",
+          len(_logs(tmp / "out")) == 1)
+
+# emit:edge re-arms when a SIBLING event matches (paired clear) on a shared topic
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp)
+    build_string_bag(tmp / "s.bag", [(0.0, '{"code": "STOP1"}'), (1.0, '{"code": "STOP1"}'),
+                                     (2.0, '{"code": "OTHER"}'),   # matches no event: no re-arm
+                                     (3.0, '{"code": "STOP1"}'),
+                                     (4.0, '{"code": "CLEAR1"}'),  # sibling match: re-arms stop
+                                     (5.0, '{"code": "STOP1"}')])
+    prof = {"profile_id": "s", "roles": {"error_events": {"topic": "/events", "msgtype": "std_msgs/msg/String"}},
+            "events": {
+                "stop": {"source_role": "error_events",
+                         "matcher": {"kind": "json_string_event", "field": "code", "op": "exact", "value": "STOP1"},
+                         "transition": "assert", "output_code": "EVENT_OBSTACLE_STOP", "emit": "edge"},
+                "clear": {"source_role": "error_events",
+                          "matcher": {"kind": "json_string_event", "field": "code", "op": "exact", "value": "CLEAR1"},
+                          "transition": "clear", "output_code": "EVENT_OBSTACLE_CLEAR", "emit": "edge"}}}
+    EX.run(tmp / "s.bag", prof, tmp / "out")
+    codes = [x["code"] for x in _logs(tmp / "out")]
+    check("edge: republishes + no-match chatter suppressed, sibling clear re-arms",
+          codes == ["EVENT_OBSTACLE_STOP", "EVENT_OBSTACLE_CLEAR", "EVENT_OBSTACLE_STOP"])
+
+# declared msgtype mismatch: warn-only, extraction still works off the bag's actual type
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = Path(tmp); bag = tmp / "m.bag"; build_odom_bag(bag, n=5, v=0.5)
+    prof = {"profile_id": "m", "roles": {
+        "actual_vel": {"topic": "/odom", "msgtype": "sensor_msgs/msg/PointCloud2",
+                       "extract": {"kind": "scalar_field", "field": "twist.twist.linear.x",
+                                   "output_metric": "actual_speed_mps"}}}}
+    EX.run(bag, prof, tmp / "out")
+    ms = json.loads((tmp / "out" / "timeline.json").read_text())["tracks"]["metrics"]
+    check("msgtype_mismatch: warned with role, metric still extracted",
+          _warns(tmp / "out").get(("msgtype_mismatch", "actual_vel")) == 1
+          and len([m for m in ms if "actual_speed_mps" in m]) == 5)
+
+# structurally unusable profiles fail fast with a named error, before the bag is read
+for bad, expect in [({"front_scan": ""}, "roles"),                       # flat discovery-template shape
+                    ({"roles": {"front_scan": {}}}, "topic"),
+                    ({"roles": {"r": {"topic": "/x"}}, "events": {"e": {"matcher": "nope"}}}, "matcher")]:
+    try:
+        EX.run(Path("/nonexistent.bag"), bad, Path("/tmp/never"))
+        check(f"ProfileError raised (expect {expect!r})", False)
+    except EX.ProfileError as e:
+        check(f"ProfileError names the field ({expect!r})", expect in str(e))
+
+# discovery skeleton: schema-valid, best-count pick, alternatives listed, events stubbed
+import private_eval_real_bag as PB
+topics = {"/scan": {"msgtype": "sensor_msgs/msg/LaserScan", "count": 900},
+          "/scan_rear": {"msgtype": "sensor_msgs/msg/LaserScan", "count": 400},
+          "/odom": {"msgtype": "nav_msgs/msg/Odometry", "count": 500},
+          "/rosout": {"msgtype": "rosgraph_msgs/Log", "count": 300},   # ROS1-style spelling
+          "/tf": {"msgtype": "tf2_msgs/msg/TFMessage", "count": 2000}}
+sk = PB.suggest_profile(topics, "case_x")
+try:
+    EX._validate_profile(sk)
+    check("skeleton passes extractor profile validation", True)
+except EX.ProfileError as e:
+    check(f"skeleton passes extractor profile validation ({e})", False)
+check("skeleton: best-count pick + alternatives + odom companion + rosout normalized",
+      sk["roles"]["front_scan"]["topic"] == "/scan"
+      and sk["roles"]["front_scan"]["_alternatives"] == ["/scan_rear"]
+      and sk["roles"]["odom"]["topic"] == "/odom"
+      and sk["roles"]["rosout"]["topic"] == "/rosout")
+check("skeleton: event stubs wired to rosout with abstract EVENT_* codes",
+      sk["events"]["stop_event"]["source_role"] == "rosout"
+      and sk["events"]["stop_event"]["output_code"].startswith("EVENT_")
+      and "diag" in sk["_unmapped_roles"] and "cmd_vel" in sk["_unmapped_roles"])
 
 print(f"--- {passed}/{passed + failed} extractor tests passed ---")
 sys.exit(0 if failed == 0 else 1)

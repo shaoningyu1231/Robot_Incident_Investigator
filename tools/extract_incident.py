@@ -29,7 +29,8 @@ abstract output_code — never the raw log text, diagnostic name, or real code.
 collapses repeated state republishes.
 
 warnings are structured counts ({code, role?, count}) with no real names/text.
-Missing role/topic, unsupported kind, or a bad message degrade gracefully.
+Missing role/topic, msgtype mismatch, unsupported kind, or a bad message degrade
+gracefully; a structurally unusable profile fails fast with a named ProfileError.
 
 Usage:
   python tools/extract_incident.py --bag in.bag \\
@@ -51,6 +52,43 @@ TS.register(get_types_from_msg("geometry_msgs/TransformStamped[] transforms",
 DEFAULT_AGG = {"front_min_range": "min", "scalar_field": "last", "tf_jump": "max"}
 MATCHER_KINDS = {"json_string_event", "rosout_text", "diagnostic_status"}
 BUCKET_EPS = 1e-6
+
+
+class ProfileError(ValueError):
+    """Structurally unusable topic-mapping profile; the message names the field."""
+
+
+def _validate_profile(profile):
+    """Fail fast with a named error instead of a KeyError deep in the pipeline.
+    Only shape is checked here; semantic problems (unknown source_role, unsupported
+    matcher kind, duplicate output_code) stay warn-and-skip graceful degradation."""
+    doc = "see docs/topic_mapping.md"
+    if not isinstance(profile, dict):
+        raise ProfileError(f"profile must be a JSON object — {doc}")
+    roles = profile.get("roles")
+    if not isinstance(roles, dict) or not roles:
+        raise ProfileError("profile needs a non-empty 'roles' object mapping role "
+                           f"names to topics — {doc}")
+    for name, r in roles.items():
+        if not isinstance(r, dict) or not isinstance(r.get("topic"), str) or not r["topic"]:
+            raise ProfileError(f"roles[{name!r}] needs a string 'topic' — {doc}")
+        ex = r.get("extract")
+        if ex is not None and (not isinstance(ex, dict) or not isinstance(ex.get("kind"), str)):
+            raise ProfileError(f"roles[{name!r}].extract needs a string 'kind' — {doc}")
+    events = profile.get("events", {})
+    if not isinstance(events, dict):
+        raise ProfileError(f"'events' must be an object mapping event names to definitions — {doc}")
+    for name, ev in events.items():
+        if not isinstance(ev, dict):
+            raise ProfileError(f"events[{name!r}] must be an object — {doc}")
+        if "matcher" in ev and not isinstance(ev["matcher"], dict):
+            raise ProfileError(f"events[{name!r}].matcher must be an object with a 'kind' — {doc}")
+
+
+def _norm_msgtype(mt):
+    """Normalize 'pkg/Type' and 'pkg/msg/Type' spellings for comparison."""
+    parts = mt.strip("/").split("/")
+    return f"{parts[0]}/msg/{parts[-1]}" if len(parts) >= 2 else mt
 
 
 def _get_field(msg, path):
@@ -147,6 +185,9 @@ def _apply_matcher(kind, msg, m, warn):
         except (ValueError, TypeError, AttributeError):
             warn("event_parse_failed")
             return False
+        if not isinstance(payload, dict):     # valid JSON but not an object (array/number/string)
+            warn("event_parse_failed")
+            return False
         return _op(op, payload.get(m.get("field", "code")), m.get("value"))
     if kind == "rosout_text":
         if "level_min" in m and int(getattr(msg, "level", 0)) < m["level_min"]:
@@ -166,6 +207,7 @@ def _apply_matcher(kind, msg, m, warn):
 
 
 def run(bag_path, profile, out_dir):
+    _validate_profile(profile)
     roles = profile["roles"]
     topic_roles = defaultdict(list)
     for r in roles.values():
@@ -184,6 +226,8 @@ def run(bag_path, profile, out_dir):
     for name, ev in profile.get("events", {}).items():
         oc, sr = ev.get("output_code"), ev.get("source_role")
         mk = ev.get("matcher", {}).get("kind")
+        if not oc:
+            warn("missing_output_code", role=name); continue
         if oc in seen_codes:
             warn("duplicate_output_code"); continue
         if sr not in roles:
@@ -213,6 +257,13 @@ def run(bag_path, profile, out_dir):
         for topic in want - present:                     # warn+skip: mapped topic absent from bag
             role_name = next((n for n, rr in roles.items() if rr["topic"] == topic), None)
             warn("missing_role_connection", role=role_name)
+        conn_type = {}
+        for c in r.connections:
+            conn_type.setdefault(c.topic, c.msgtype)
+        for rname, rr in roles.items():                  # declared msgtype vs what the bag carries
+            declared, actual = rr.get("msgtype"), conn_type.get(rr["topic"])
+            if declared and actual and _norm_msgtype(declared) != _norm_msgtype(actual):
+                warn("msgtype_mismatch", role=rname)
         start = r.start_time
         conns = [c for c in r.connections if c.topic in want]
         for c, ts, rawdata in r.messages(connections=conns):
@@ -254,8 +305,10 @@ def run(bag_path, profile, out_dir):
                 if v is not None:
                     raw[om].append((t, v))
             if is_event_src:
-                for name, ev in ev_topic[topic]:          # profile order -> deterministic
-                    matched = _apply_matcher(ev["matcher"]["kind"], msg, ev["matcher"], warn)
+                results = [(name, ev, _apply_matcher(ev["matcher"]["kind"], msg, ev["matcher"], warn))
+                           for name, ev in ev_topic[topic]]  # profile order -> deterministic
+                any_match = any(m for _, _, m in results)
+                for name, ev, matched in results:
                     st = ev_state[name]
                     if matched:
                         edge_ok = st["last_emit"] is None or not st["last_match"]
@@ -267,7 +320,14 @@ def run(bag_path, profile, out_dir):
                             level = "WARN" if ev.get("transition") == "assert" else "INFO"
                             logs.append({"t": round(t, 3), "level": level, "node": "extractor",
                                          "code": ev["output_code"], "message": ""})
-                    st["last_match"] = matched
+                        st["last_match"] = True
+                    elif any_match:
+                        # edge re-arms only when a SIBLING event matched this message
+                        # (the channel changed state, e.g. the paired clear fired).
+                        # Unrelated traffic — other nodes' rosout lines interleaved
+                        # between republishes of the same fault — must not re-arm,
+                        # or emit:edge would emit on every republish.
+                        st["last_match"] = False
 
     metric_list, out_count = _bucketize(raw, agg_of, bucket_s)
 
@@ -304,8 +364,14 @@ def main():
     ap.add_argument("--profile", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
-    profile = json.loads(args.profile.read_text())
-    s = run(args.bag, profile, args.out)
+    try:
+        profile = json.loads(args.profile.read_text())
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"[extract] profile {args.profile} is not valid JSON: {e}")
+    try:
+        s = run(args.bag, profile, args.out)
+    except ProfileError as e:
+        raise SystemExit(f"[extract] profile error: {e}")
     print(f"[extract] out={args.out} metrics={s['metrics']} logs={s['logs']} "
           f"t_end={s['t_end']} warnings={s['warnings']}")
 
