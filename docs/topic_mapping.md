@@ -44,6 +44,10 @@ role labels are shared.
   extractor emits only the abstract `output_code` (e.g. `EVENT_OBSTACLE_STOP`) —
   never the raw log text, diagnostic name, or real code. `transition`
   (`assert` | `clear`) is declared, not guessed from content.
+- `_status` / `_caveats` (local profiles; ignored by the extractor) — mark a role
+  or event mapping `"confirmed"` or `"provisional"` (missing means provisional)
+  and record known semantic caveats as free text. The private smoke test reports
+  **counts only**; status labels and caveat text never leave the machine.
 
 ### Roles
 
@@ -104,6 +108,14 @@ source message matching several events is handled in profile order.
   the public repo, README, issues, or PRs.
 - The private smoke-test manifest redacts topic names and non-standard msgtype
   package names (see `tools/private_eval_real_bag.py`).
+- `tools/private_eval_smoke.py` is the repeatable private acceptance flow:
+  extract → `list_incident_candidates` → verify each candidate → sanitized
+  summary with a PASS/FAIL checklist. It requires `--out` under `private_eval/`
+  (checked against `.gitignore`), asserts honest degradation (no `high` with
+  demoted or force-placeholdered signals), and refuses to write a summary
+  containing any profile string (topics, msgtypes, matcher values). It checks
+  plumbing and privacy, never verdict ground truth — that stays with the
+  synthetic oracle.
 
 ## Correctness boundary
 
