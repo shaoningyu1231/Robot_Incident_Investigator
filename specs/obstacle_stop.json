@@ -110,11 +110,12 @@
   },
 
   "expected": {
-    "_about": "The correctness oracle: ONE obstacle-stop spec evaluated against three synthetic datasets must yield three verdicts (matches current eval). Not per-scenario specs.",
+    "_about": "The correctness oracle: ONE obstacle-stop spec evaluated against the synthetic datasets must yield these verdicts (matches current eval). Not per-scenario specs. two_stop_cycles scores high/ok on its FIRST event window by default; its second (events-only, no obstacle/halt) cycle is asserted low/ok through the candidate-discovery gate.",
     "against": {
       "obstacle_stop": { "level": "high", "verdict": "ok" },
       "planned_stop": { "level": "low", "verdict": "ok" },
-      "sensor_disagreement": { "level": "low", "verdict": "conflicting" }
+      "sensor_disagreement": { "level": "low", "verdict": "conflicting" },
+      "two_stop_cycles": { "level": "high", "verdict": "ok" }
     }
   }
 }

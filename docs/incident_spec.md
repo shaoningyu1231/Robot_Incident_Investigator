@@ -66,6 +66,19 @@ The compiled output records how it was produced in `compile_info` (resolved
 window, window mode, demoted signals, forced placeholders) so a report can state
 degradations explicitly instead of hiding them.
 
+## Candidate discovery
+
+A long recording can contain several occurrences of the anchor event; "the first
+event wins" is not an investigation. `list_incident_candidates` (in
+`tools/incident_spec.py`, exposed to the agent as a tool) enumerates one
+candidate per occurrence of the conclusion's anchor event in the neutral logs —
+`candidate_id`, `event_t`, `transition`, and the window derived from
+`search_window_strategy`. It is discovery only: each candidate's window is then
+verified individually (`compile_spec` with `window_override`), and the verdicts
+must discriminate. The `two_stop_cycles` synthetic scenario locks this in: a
+genuine obstacle stop verifies `high/ok` while a second stop/clear event pair
+with no obstacle observation and no halt verifies `low/ok`.
+
 ## Honest degradation, by construction
 
 The verifier's ladder (`high` / `medium` / `low`, verdict `ok` / `conflicting`)

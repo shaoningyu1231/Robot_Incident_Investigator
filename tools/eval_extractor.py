@@ -21,6 +21,11 @@ Real-compatibility fixtures (mutated hero extract, derived window):
     reverse); expect low/ok (velocity_halt declares abs, so a reverse velocity
     must not satisfy the <= 0.01 halt condition).
 
+Candidate discovery (two_stop_cycles): list_incident_candidates must return two
+disjoint windows, and verifying each individually must DISCRIMINATE — the first
+(genuine obstacle stop) high/ok, the second (events without any obstacle
+observation or halt) low/ok. The list->verify flow must not confirm every window.
+
 Generated assets are git-ignored (eval_build/).
 Run: <venv>/python3 tools/eval_extractor.py
 """
@@ -143,6 +148,28 @@ for fname, finc, want in FIXTURES:
     if not ok:
         print(f"    checks={es['checks']} conflicts={es.get('conflicts')} missing={es['missing']}")
 print(f"--- {n_ok}/{len(FIXTURES)} fixtures passed ---")
+
+print("=== candidate discovery (two_stop_cycles: list -> verify each window) ===")
+tsc = incs["two_stop_cycles"]
+cands = SP.list_incident_candidates(SPEC, tsc, CONC)
+d_ok = len(cands) == 2 and cands[0]["window"][1] < cands[1]["window"][0]
+allok &= d_ok
+print(f"count==2, windows disjoint {'PASS' if d_ok else 'FAIL'} "
+      f"({[c['window'] for c in cands]})")
+n_ok = 0
+CAND_EXP = [("cand_1", "high", "ok"), ("cand_2", "low", "ok")]
+for cand, (cid, lvl, vd) in zip(cands, CAND_EXP):
+    ann = SP.compile_spec(SPEC, tsc, CONC, window_override=tuple(cand["window"]))
+    es = R.evidence_strength(tsc.replace(annotations=ann), CONC,
+                             tuple(ann["compile_info"]["window"]))
+    ok = cand["candidate_id"] == cid and es["level"] == lvl and es["verdict"] == vd
+    allok &= ok
+    n_ok += ok
+    print(f"{cand['candidate_id']:8} event_t={cand['event_t']:<6} window={cand['window']} "
+          f"expect={lvl}/{vd:12} got={es['level']}/{es['verdict']:12} {'PASS' if ok else 'FAIL'}")
+    if not ok:
+        print(f"    checks={es['checks']} missing={es['missing']}")
+print(f"--- {n_ok}/{len(CAND_EXP)} candidates verified independently ---")
 
 inc = hero.replace(annotations=SP.compile_spec(SPEC, hero, CONC))
 rec_ok = True

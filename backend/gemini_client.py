@@ -112,7 +112,10 @@ SYSTEM = (
     "Use verify_conclusion only when the user asks to verify the conclusion for a specific or "
     "derived time window (a hypothesis window): unlike inspect_incident_window's static evidence, "
     "it recompiles the spec evidence for that window. When you use it, state the window it used "
-    "and whether compile_info.window_mode was derived, declared, or override."
+    "and whether compile_info.window_mode was derived, declared, or override.\n"
+    "For a long recording, or when the user asks which incidents/stop events are investigable, "
+    "call list_incident_candidates first, then verify the chosen candidate's window with "
+    "verify_conclusion (window_override = that candidate's window)."
 )
 
 TOOL_DECLS = [
@@ -136,6 +139,14 @@ TOOL_DECLS = [
          "query": {"type": "string"}, "code": {"type": "string"}, "node": {"type": "string"},
          "start": {"type": "number"}, "end": {"type": "number"}},
          "required": []}},
+    {"name": "list_incident_candidates",
+     "description": "List investigable candidate windows for a conclusion: one candidate per "
+                    "occurrence of its anchor stop event in the logs, each with candidate_id, "
+                    "event_t, transition, and a derived window. Discovery only — verify a chosen "
+                    "candidate's window with verify_conclusion (window_override).",
+     "parameters": {"type": "object", "properties": {
+         "conclusion_id": {"type": "string"}},
+         "required": ["conclusion_id"]}},
     {"name": "verify_conclusion",
      "description": "Recompile the incident spec for a hypothesis window and verify it with the "
                     "deterministic rules. Unlike inspect_incident_window (static evidence), this "
@@ -207,6 +218,20 @@ def run_verify_conclusion(inc, args):
             "note": "Compiled from the incident spec at request time; deterministic verifier unchanged."}
 
 
+def run_list_incident_candidates(inc, args):
+    """Enumerate investigable candidate windows (one per anchor-event occurrence
+    in the neutral logs). Discovery only; verify a chosen candidate's window with
+    verify_conclusion. Raises ValueError on bad input."""
+    cid = args.get("conclusion_id")
+    if not any(c["id"] == cid for c in SPEC["conclusions"]):
+        raise ValueError(f"unknown conclusion_id {cid!r}")
+    view = inc.replace(logs=_abstract_logs(PROFILE, inc.logs))
+    cands = SP.list_incident_candidates(SPEC, view, cid)
+    return {"conclusion_id": cid, "count": len(cands), "candidates": cands,
+            "note": "Discovery only — verify a chosen candidate's window with "
+                    "verify_conclusion (window_override)."}
+
+
 def run_tool(inc, name, args):
     """执行确定性工具,返回 (json_result, media_refs)。"""
     try:
@@ -224,6 +249,8 @@ def run_tool(inc, name, args):
                                  node=args.get("node"), start=args.get("start"), end=args.get("end")), []
         if name == "verify_conclusion":
             return run_verify_conclusion(inc, args), []
+        if name == "list_incident_candidates":
+            return run_list_incident_candidates(inc, args), []
         raise ToolError(f"unknown tool {name}")
     except ToolError:
         raise

@@ -102,6 +102,22 @@ def main():
         r = c.post("/tools/verify_conclusion", json={"conclusion_id": CID, "window_override": [5]})
         chk("verify bad window_override -> 400", r.status_code == 400, str(r.status_code))
 
+        # list_incident_candidates -> verify chaining (hero has exactly one stop event)
+        lc = c.post("/tools/list_incident_candidates", json={"conclusion_id": CID}).json()
+        chk("candidates: hero count==1 with fields",
+            lc["count"] == 1 and lc["candidates"][0]["candidate_id"] == "cand_1"
+            and abs(lc["candidates"][0]["event_t"] - 10.6) < 0.2
+            and lc["candidates"][0]["transition"] == "assert", str(lc))
+        v = c.post("/tools/verify_conclusion",
+                   json={"conclusion_id": CID,
+                         "window_override": lc["candidates"][0]["window"]}).json()
+        chk("candidates: chained verify(candidate window) == high/ok, mode=override",
+            v["compile_info"]["window_mode"] == "override"
+            and v["evidence_strength"]["level"] == "high"
+            and v["evidence_strength"]["verdict"] == "ok", str(v.get("compile_info")))
+        r = c.post("/tools/list_incident_candidates", json={"conclusion_id": "nonexistent"})
+        chk("candidates unknown conclusion_id -> 400", r.status_code == 400, str(r.status_code))
+
         # A5/A6 篡改(后端规则模块,与 /tools 同一实现)
         sys.path.insert(0, str(ROOT / "tools"))
         import incident_rules as R
