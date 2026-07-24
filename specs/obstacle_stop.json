@@ -1,13 +1,15 @@
 {
-  "spec_version": "0.1",
+  "spec_version": "0.2",
   "spec_id": "obstacle_stop",
   "title": "Obstacle-triggered safety stop",
 
-  "_about": "Reusable incident rule. A compiler (tools/incident_spec.py, not built yet) evaluates this against an incident's timeline/logs and EMITS the annotations shape that tools/incident_rules.py already consumes. Signals declare HOW to find/observe evidence in the data; anchor times (t) are discovered by the compiler via anchor_strategy, never written here. The deterministic verifier is unchanged.",
+  "_about": "Reusable incident rule. The compiler (tools/incident_spec.py) evaluates this against an incident's timeline/logs and EMITS the annotations shape that tools/incident_rules.py already consumes. Signals declare HOW to find/observe evidence in the data; anchor times (t) are discovered by the compiler via anchor_strategy, never written here. 0.2 adds real-compatible compilation: search_window_strategy (event-derived window), required: if_available (a corroborating source a robot may not have), and positive_required (a conclusion asserting an obstacle needs at least one positive observation). The deterministic verifier is unchanged.",
 
   "requires": {
-    "metrics": ["front_min_range_m", "front_distance_m", "actual_speed_mps"],
-    "log_codes": ["EVENT_OBSTACLE_STOP", "EVENT_OBSTACLE_CLEAR"]
+    "metrics": ["front_min_range_m", "actual_speed_mps"],
+    "optional_metrics": ["front_distance_m"],
+    "log_codes": ["EVENT_OBSTACLE_STOP", "EVENT_OBSTACLE_CLEAR"],
+    "_note": "Documentation only (no code consumer). optional_metrics mirrors required: if_available below."
   },
 
   "signals": {
@@ -44,8 +46,9 @@
       "metric": "actual_speed_mps",
       "op": "<=",
       "threshold": 0.01,
+      "abs": true,
       "anchor_strategy": "first_true_after:stop_event",
-      "_note": "event/crossing signal: emits evidence only when it fires; absence -> required_present false -> low. after:stop_event avoids matching an unrelated early zero."
+      "_note": "event/crossing signal: emits evidence only when it fires; absence -> required_present false -> low. after:stop_event avoids matching an unrelated early zero. abs: a halt means |v| <= threshold — a signed velocity in reverse must not satisfy it."
     }
   },
 
@@ -54,8 +57,25 @@
       "id": "concl_obstacle_stop",
       "statement": "The robot stopped because an obstacle entered the demo safety zone ahead.",
       "search_window": [9.5, 11.8],
-      "_search_window_note": "Hint bracketing the stop hypothesis so anchor_strategy does not scan the whole timeline. The eval harness may override it.",
-      "required_signals": ["lidar_front_zone", "front_distance_zone", "stop_event", "velocity_halt"],
+      "_search_window_note": "Declared fallback window. When search_window_strategy finds its anchor event in the logs, the window is derived from the event time instead; callers may still override.",
+      "search_window_strategy": {
+        "kind": "around_log_event",
+        "code": "EVENT_OBSTACLE_STOP",
+        "pre_s": 1.0,
+        "post_s": 3.0,
+        "fallback": "declared"
+      },
+      "required_signals": [
+        { "id": "lidar_front_zone", "required": "always" },
+        { "id": "front_distance_zone", "required": "if_available" },
+        { "id": "stop_event", "required": "always" },
+        { "id": "velocity_halt", "required": "always" }
+      ],
+      "_required_note": "if_available: a second independent distance source that some robots simply do not have. Absent from every timeline row -> demoted to a label-less corroboration member (verifier caps at medium); present but not firing stays a real negative observation.",
+      "positive_required": [
+        { "any_of": ["lidar_front_zone", "front_distance_zone"], "placeholder": "lidar_front_zone" }
+      ],
+      "_positive_required_note": "At least one zone member must observe 'obstacle'; all-clear sensors + stop event + halt must NOT support this conclusion (the compiler degrades the placeholder signal to out-of-window -> low).",
       "corroboration_groups": [["lidar_front_zone", "front_distance_zone"]],
       "temporal_checks": [
         { "before": "front_distance_zone", "after": "stop_event", "min_delay_s": 0.0, "max_delay_s": 0.3 },

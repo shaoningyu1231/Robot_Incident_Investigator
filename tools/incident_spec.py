@@ -19,7 +19,28 @@ Signal handling:
   - temporal_checks / metric_checks are emitted only for signals that actually
     fired; placeholders never participate in them.
 
-See progress.md 'incident-metrics'.
+Real-compatible compilation (spec 0.2):
+  - search_window_strategy {kind: "around_log_event", code, pre_s, post_s} derives
+    the window from the incident's own logs ([t - pre_s, t + post_s] around the
+    FIRST occurrence of the code); no occurrence -> fall back to the declared
+    search_window. window_mode="declared" ignores the strategy (legacy fixed
+    window); an explicit window_override wins over both.
+  - required_signals entries may be {"id", "required": "always"|"if_available"}.
+    if_available + metric absent from EVERY timeline row (this robot cannot
+    provide the source at all) -> dropped from required_evidence but kept in its
+    corroboration group as a label-less "source unavailable" evidence, so
+    labels_corroborate fails and the verifier naturally caps the level at medium
+    (single source, corroboration declared but unavailable). A metric that IS
+    present but never fires stays a real negative observation — never skipped.
+  - conclusions may declare positive_required groups {any_of, placeholder}: if NO
+    member observed its positive label, the placeholder signal is emitted as an
+    out-of-window placeholder -> required_present False -> low. A conclusion
+    asserting an obstacle needs at least one positive observation; negative
+    (clear) observations corroborate or conflict, they never satisfy it. This
+    closes the false positive where stop event + halt + all-clear sensors could
+    reach high.
+
+See progress.md 'incident-metrics' and 'real-compatible spec compilation'.
 """
 import sys
 from pathlib import Path
@@ -36,9 +57,39 @@ def _sorted_metrics(inc):
     return sorted(inc.timeline["tracks"]["metrics"], key=lambda m: m["t"])
 
 
-def _first_true(metrics, name, op, thr, window, after_t=None, crossing=False):
+def _conc(spec, conclusion_id):
+    return next(c for c in spec["conclusions"] if c["id"] == conclusion_id)
+
+
+def _required_entries(conc):
+    """Normalize required_signals: plain string == {"id": s, "required": "always"}."""
+    return [{"id": e, "required": "always"} if isinstance(e, str)
+            else {"id": e["id"], "required": e.get("required", "always")}
+            for e in conc["required_signals"]]
+
+
+def resolve_search_window(spec, inc, conclusion_id, window_mode="auto", window_override=None):
+    """Return ((lo, hi), mode). mode: override | derived | declared | declared_fallback."""
+    conc = _conc(spec, conclusion_id)
+    declared = tuple(conc["search_window"])
+    if window_override is not None:
+        return tuple(window_override), "override"
+    strat = conc.get("search_window_strategy")
+    if window_mode == "declared" or not strat:
+        return declared, "declared"
+    if strat["kind"] != "around_log_event":
+        raise ValueError(f"unknown search_window_strategy kind {strat['kind']}")
+    hits = [lg["t"] for lg in inc.logs if lg.get("code") == strat["code"]]
+    if not hits:
+        return declared, "declared_fallback"
+    t = min(hits)
+    return (round(t - strat["pre_s"], 3), round(t + strat["post_s"], 3)), "derived"
+
+
+def _first_true(metrics, name, op, thr, window, after_t=None, crossing=False, use_abs=False):
     """First t inside window where OP(metric[name], thr). crossing => require the
-    previous in-window sample to be false (a real transition)."""
+    previous in-window sample to be false (a real transition). use_abs compares
+    |value| (a signed velocity in reverse must not satisfy a halt's <=)."""
     lo, hi = window
     prev_true = False
     for m in metrics:
@@ -47,7 +98,7 @@ def _first_true(metrics, name, op, thr, window, after_t=None, crossing=False):
             prev_true = False
             continue
         v = m.get(name)
-        cur = v is not None and R.OPS[op](v, thr)
+        cur = v is not None and R.OPS[op](abs(v) if use_abs else v, thr)
         if cur and (after_t is None or t >= after_t - EPS) and (not crossing or not prev_true):
             return t, v
         prev_true = cur
@@ -71,13 +122,23 @@ def _ref_for(inc, modality, metric, code, t):
     return ""
 
 
-def compile_spec(spec, inc, conclusion_id):
+def compile_spec(spec, inc, conclusion_id, window_mode="auto", window_override=None):
     metrics = _sorted_metrics(inc)
-    conc = next(c for c in spec["conclusions"] if c["id"] == conclusion_id)
-    lo, hi = conc["search_window"]
+    conc = _conc(spec, conclusion_id)
+    (lo, hi), win_mode = resolve_search_window(spec, inc, conclusion_id,
+                                               window_mode=window_mode,
+                                               window_override=window_override)
     window = (lo, hi)
     placeholder_t = round(lo - PLACEHOLDER_OFFSET_S, 3)
     sigs = spec["signals"]
+
+    # if_available demotion: only when the metric is absent from EVERY row —
+    # present-but-never-firing is a real observation and stays fully required.
+    req_entries = _required_entries(conc)
+    unavailable = {e["id"] for e in req_entries
+                   if e["required"] == "if_available"
+                   and sigs[e["id"]].get("metric")
+                   and not any(m.get(sigs[e["id"]]["metric"]) is not None for m in metrics)}
 
     # --- resolve each signal's fired state + raw anchor (recursive for after: deps) ---
     resolved = {}
@@ -95,7 +156,7 @@ def compile_spec(spec, inc, conclusion_id):
         crossing = strat == "first_crossing"
         if kind in ("metric_threshold_state", "metric_threshold_crossing"):
             t, v = _first_true(metrics, s["metric"], s["op"], s["threshold"], window,
-                               after_t=after_t, crossing=crossing)
+                               after_t=after_t, crossing=crossing, use_abs=s.get("abs", False))
             resolved[name] = {"fired": t is not None, "anchor": t, "value": v, "sig": s}
         elif kind == "log_event":
             hit = next((lg for lg in inc.logs
@@ -110,6 +171,13 @@ def compile_spec(spec, inc, conclusion_id):
         resolve(name)
     fired = {n: r["fired"] for n, r in resolved.items()}
     groups = conc.get("corroboration_groups", [])
+
+    # positive_required: an unavailable member cannot fire, so it never satisfies
+    # the group; the placeholder target degrades to out-of-window -> low.
+    forced_placeholder = set()
+    for grp in conc.get("positive_required", []):
+        if not any(resolved[n]["fired"] for n in grp["any_of"]):
+            forced_placeholder.add(grp["placeholder"])
 
     def peer_anchor(name):
         """Anchor a negative observation to a fired peer in its corroboration group
@@ -127,6 +195,19 @@ def compile_spec(spec, inc, conclusion_id):
         s = r["sig"]
         mod = s["modality"]
         if s["type"] == "metric_threshold_state":
+            if name in unavailable:
+                # source cannot be provided by this robot: label-less group member
+                # (labels_corroborate fails -> capped at medium), never a fake "clear"
+                evidence.append({"id": name, "modality": mod, "t": peer_anchor(name), "ref": "",
+                                 "metric": {"name": s["metric"], "value": None},
+                                 "expected_observation":
+                                     "Corroborating source unavailable: metric absent from this dataset."})
+                continue
+            if name in forced_placeholder:
+                evidence.append({"id": name, "modality": mod, "t": placeholder_t, "ref": "",
+                                 "expected_observation":
+                                     "No positive observation in the hypothesis window."})
+                continue
             if r["fired"]:
                 t, label = r["anchor"], s["positive_label"]
             else:
@@ -164,11 +245,14 @@ def compile_spec(spec, inc, conclusion_id):
                                   "threshold": s["threshold"], "evidence_id": mc["signal"]})
 
     out_conc = {"id": conc["id"], "statement": conc.get("statement", ""),
-                "required_evidence": list(conc["required_signals"]),
+                "required_evidence": [e["id"] for e in req_entries if e["id"] not in unavailable],
                 "corroboration_groups": groups,
                 "temporal_checks": temporal, "metric_checks": metric_checks}
 
     return {"incident_id": inc.metadata.get("incident_id"),
+            "compile_info": {"window": [lo, hi], "window_mode": win_mode,
+                             "unavailable_signals": sorted(unavailable),
+                             "forced_placeholders": sorted(forced_placeholder)},
             "evidence": evidence, "conclusions": [out_conc],
             "stateful_events": spec.get("stateful_events", []),
             "recovery": spec.get("recovery", {"conditions": []})}
