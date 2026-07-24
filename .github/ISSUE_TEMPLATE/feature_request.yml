@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose a new capability or improvement.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Note the contribution model (see `CONTRIBUTING.md`): a new incident type
+        is usually a **spec** (`specs/*.json`) plus a synthetic scenario — not a
+        code change. The deterministic verifier is frozen; missing evidence must
+        lower verdicts, never inflate them.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What can't you do today, and in what situation does it matter?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch how it could work. Reference specs/profiles/extractor concepts where possible.
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Which layer
+      options:
+        - Incident spec (specs/)
+        - Topic mapping profile (profiles/)
+        - Extractor (new extract kind / matcher)
+        - Agent tools / backend
+        - Visualization (Rerun / UI)
+        - Docs / quickstart
+        - Formats (ROS2 / MCAP)
+        - Other
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: This issue contains no real topic names, raw logs, error codes, or TF frame ids.
+          required: true

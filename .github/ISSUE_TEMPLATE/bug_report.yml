@@ -1,0 +1,49 @@
+name: Bug report
+description: Something broke or behaved unexpectedly.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Privacy first.** Paste **redacted output only** (gate output, the smoke
+        PASS/FAIL checklist, `summary.redacted.json`). Never paste real topic
+        names, raw log/diagnostic text, real error codes, or TF frame ids —
+        `*.local.json` and `private_eval/` contents must stay on your machine.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you run, what did you expect, what did you get instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: path
+    attributes:
+      label: Which path
+      options:
+        - Synthetic demo / gates
+        - Private ROS1 bag smoke (local)
+        - Backend / agent tools
+        - Rerun visualization
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Sanitized output
+      description: Gate output, smoke checklist, or summary.redacted.json content. Redacted only.
+      render: text
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Python 3.10, Ubuntu 22.04, rosbags 0.9.23"
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: This issue contains no real topic names, raw logs, error codes, or TF frame ids.
+          required: true
