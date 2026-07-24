@@ -78,6 +78,30 @@ def main():
         rm = c.post("/tools/check_recovery_readiness", json={"evaluation_window": [19, 25]}).json()
         chk("A4b recovery[19,25]==conditions_met", rm["recovery_readiness"] == "conditions_met", str(rm["recovery_readiness"]))
 
+        # verify_conclusion: spec compiled at request time (verifier + demo annotations untouched)
+        v = c.post("/tools/verify_conclusion", json={"conclusion_id": CID}).json()
+        chk("verify auto: derived window, high/ok",
+            v["compile_info"]["window_mode"] == "derived"
+            and v["evidence_strength"]["level"] == "high"
+            and v["evidence_strength"]["verdict"] == "ok", str(v.get("compile_info")))
+        v = c.post("/tools/verify_conclusion",
+                   json={"conclusion_id": CID, "window_override": [9.6, 13.6]}).json()
+        chk("verify override[9.6,13.6]: high/ok, mode=override",
+            v["compile_info"]["window_mode"] == "override"
+            and v["evidence_strength"]["level"] == "high"
+            and v["evidence_strength"]["verdict"] == "ok", str(v.get("compile_info")))
+        v = c.post("/tools/verify_conclusion",
+                   json={"conclusion_id": CID, "window_override": [0.0, 4.0]}).json()
+        chk("verify quiet override[0,4]: low (stop/positive evidence missing)",
+            v["compile_info"]["window_mode"] == "override"
+            and v["evidence_strength"]["level"] == "low"
+            and not v["evidence_strength"]["checks"]["required_present"],
+            str(v.get("evidence_strength", {}).get("missing")))
+        r = c.post("/tools/verify_conclusion", json={"conclusion_id": "nonexistent"})
+        chk("verify unknown conclusion_id -> 400", r.status_code == 400, str(r.status_code))
+        r = c.post("/tools/verify_conclusion", json={"conclusion_id": CID, "window_override": [5]})
+        chk("verify bad window_override -> 400", r.status_code == 400, str(r.status_code))
+
         # A5/A6 篡改(后端规则模块,与 /tools 同一实现)
         sys.path.insert(0, str(ROOT / "tools"))
         import incident_rules as R

@@ -22,7 +22,8 @@ from starlette.staticfiles import StaticFiles
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import incident_rules as R
-from gemini_client import GeminiInvestigator, validate_question, validate_history, InputError, _scrub
+from gemini_client import (GeminiInvestigator, validate_question, validate_history,
+                           InputError, _scrub, run_verify_conclusion)
 
 INCIDENT_DIR = Path(os.environ.get("INCIDENT_DIR", ROOT / "incident"))
 INC = R.Incident.load(INCIDENT_DIR)
@@ -147,6 +148,17 @@ async def tool_recovery(request):
         return JSONResponse({"error": str(e)}, status_code=400)
 
 
+async def tool_verify_conclusion(request):
+    """Spec-compiled verification: recompiles evidence for a hypothesis window
+    (derived from the incident's own stop event, or window_override) and runs the
+    unchanged verifier. Additive — the hand-authored annotations path is untouched."""
+    try:
+        b = await request.json()
+        return JSONResponse(run_verify_conclusion(INC, b))
+    except (KeyError, ValueError, TypeError) as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
 async def tool_search_logs(request):
     b = await request.json()
     res = R.search_logs(INC, query=b.get("query"), code=b.get("code"), node=b.get("node"),
@@ -202,6 +214,7 @@ app = Starlette(routes=[
     Route("/tools/inspect_incident_window", tool_inspect, methods=["POST"]),
     Route("/tools/check_recovery_readiness", tool_recovery, methods=["POST"]),
     Route("/tools/search_logs", tool_search_logs, methods=["POST"]),
+    Route("/tools/verify_conclusion", tool_verify_conclusion, methods=["POST"]),
     Route("/investigate", investigate, methods=["POST"]),
     Route("/investigate/stream", investigate_stream, methods=["POST"]),
     Mount("/static", app=StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static"),
