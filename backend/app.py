@@ -23,7 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import incident_rules as R
 from gemini_client import (GeminiInvestigator, validate_question, validate_history,
-                           InputError, _scrub, run_verify_conclusion)
+                           InputError, _scrub, run_verify_conclusion,
+                           run_list_incident_candidates)
 
 INCIDENT_DIR = Path(os.environ.get("INCIDENT_DIR", ROOT / "incident"))
 INC = R.Incident.load(INCIDENT_DIR)
@@ -159,6 +160,16 @@ async def tool_verify_conclusion(request):
         return JSONResponse({"error": str(e)}, status_code=400)
 
 
+async def tool_list_candidates(request):
+    """Candidate discovery: one investigable window per anchor-event occurrence
+    in the neutral logs. Pairs with /tools/verify_conclusion (window_override)."""
+    try:
+        b = await request.json()
+        return JSONResponse(run_list_incident_candidates(INC, b))
+    except (KeyError, ValueError, TypeError) as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
 async def tool_search_logs(request):
     b = await request.json()
     res = R.search_logs(INC, query=b.get("query"), code=b.get("code"), node=b.get("node"),
@@ -215,6 +226,7 @@ app = Starlette(routes=[
     Route("/tools/check_recovery_readiness", tool_recovery, methods=["POST"]),
     Route("/tools/search_logs", tool_search_logs, methods=["POST"]),
     Route("/tools/verify_conclusion", tool_verify_conclusion, methods=["POST"]),
+    Route("/tools/list_incident_candidates", tool_list_candidates, methods=["POST"]),
     Route("/investigate", investigate, methods=["POST"]),
     Route("/investigate/stream", investigate_stream, methods=["POST"]),
     Mount("/static", app=StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static"),

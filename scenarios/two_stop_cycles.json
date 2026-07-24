@@ -1,0 +1,32 @@
+{
+  "incident_id": "demo_two_stop_cycles_01",
+  "duration_s": 45.0,
+  "hz": 10,
+  "base_epoch_s": 1735689600,
+  "front_safety_m": 1.2,
+  "codes": { "stop": "DEMO_OBSTACLE_STOP_01", "clear": "DEMO_OBSTACLE_CLEAR_01" },
+  "times": {
+    "obst_appear": 10.0, "drop_end": 10.4, "stop": 10.6, "halt": 11.3,
+    "obst_remove": 20.2, "clear": 20.4, "rise_end": 20.8, "resume_end": 21.1
+  },
+  "evidence_t": { "lidar": 10.4, "dist": 10.5, "stop": 10.6, "halt": 11.3 },
+  "rules": {
+    "corrob_max_skew_s": 0.2, "temporal_dist_stop_max_s": 0.3,
+    "temporal_stop_halt_max_s": 1.0, "recovery_dur_s": 1.0, "halt_speed_eps": 0.01
+  },
+  "values": { "planner_v": 0.80, "actual_v": 0.79, "front_nominal_m": 2.6, "front_obstacle_m": 0.74 },
+  "frames": ["demo_map", "demo_odom", "demo_base_link"],
+  "events": [
+    { "t": 10.6, "code": "DEMO_OBSTACLE_STOP_01", "kind": "assert" },
+    { "t": 20.4, "code": "DEMO_OBSTACLE_CLEAR_01", "kind": "clear" },
+    { "t": 35.0, "code": "DEMO_OBSTACLE_STOP_01", "kind": "assert" },
+    { "t": 40.0, "code": "DEMO_OBSTACLE_CLEAR_01", "kind": "clear" }
+  ],
+  "doc": {
+    "title": "Synthetic two stop cycles",
+    "description": "Fully synthetic; does not reproduce any real incident or bag.",
+    "scenario_label": "Two stop/clear cycles in one recording — the first is a genuine obstacle stop; the second raises the same events with the front zone clear and the robot still moving.",
+    "root_cause": "Cycle one: an obstacle entered the demo safety zone and the robot halted. Cycle two: stop/clear events fired without any obstacle observation or velocity halt."
+  },
+  "expected": { "hypothesis": "concl_obstacle_stop", "evidence_strength": "high", "verdict": "ok" }
+}

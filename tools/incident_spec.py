@@ -86,6 +86,26 @@ def resolve_search_window(spec, inc, conclusion_id, window_mode="auto", window_o
     return (round(t - strat["pre_s"], 3), round(t + strat["post_s"], 3)), "derived"
 
 
+def list_incident_candidates(spec, inc, conclusion_id):
+    """Enumerate investigable windows for a conclusion: one candidate per
+    occurrence of the conclusion's anchor event in the NEUTRAL logs, windowed by
+    the spec's search_window_strategy. Discovery only — it never verifies; each
+    candidate's window is verified individually (compile_spec window_override).
+    Long / multi-event recordings stop depending on 'the first event wins'."""
+    conc = _conc(spec, conclusion_id)
+    strat = conc.get("search_window_strategy")
+    if not strat:
+        raise ValueError(f"conclusion {conclusion_id!r} declares no search_window_strategy")
+    if strat["kind"] != "around_log_event":
+        raise ValueError(f"unknown search_window_strategy kind {strat['kind']}")
+    kinds = {se.get("code"): se.get("kind") for se in spec.get("stateful_events", [])}
+    hits = sorted(lg["t"] for lg in inc.logs if lg.get("code") == strat["code"])
+    return [{"candidate_id": f"cand_{i + 1}", "event_code": strat["code"], "event_t": t,
+             "transition": kinds.get(strat["code"], "assert"),
+             "window": [round(t - strat["pre_s"], 3), round(t + strat["post_s"], 3)]}
+            for i, t in enumerate(hits)]
+
+
 def _first_true(metrics, name, op, thr, window, after_t=None, crossing=False, use_abs=False):
     """First t inside window where OP(metric[name], thr). crossing => require the
     previous in-window sample to be false (a real transition). use_abs compares
