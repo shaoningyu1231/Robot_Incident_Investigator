@@ -69,6 +69,10 @@ def deny_strings(profile):
         for k in ("topic", "msgtype"):
             if r.get(k):
                 deny.add(str(r[k]))
+        ex = r.get("extract", {})
+        for k in ("parent_frame", "child_frame"):  # real TF frame ids are private
+            if ex.get(k):
+                deny.add(str(ex[k]))
     for e in profile.get("events", {}).values():
         v = e.get("matcher", {}).get("value")
         if v:
