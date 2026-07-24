@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import os
 import re
 import sys
@@ -83,8 +84,15 @@ def _hist_to_contents(history):
         out.append({"role": role, "parts": [{"text": h.get("text", "")}]})
     return out
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+_REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_REPO / "tools"))
 import incident_rules as R
+import incident_spec as SP
+
+# Spec + synthetic-demo profile for verify_conclusion: compiled at request time,
+# never replacing the served hand-authored annotations (demo path unchanged).
+SPEC = json.loads((_REPO / "specs" / "obstacle_stop.json").read_text())
+PROFILE = json.loads((_REPO / "profiles" / "synthetic_demo.example.json").read_text())
 
 API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 SYSTEM = (
@@ -100,7 +108,11 @@ SYSTEM = (
     "check_recovery_readiness and report conditions_met / blocked / insufficient_evidence as a "
     "recovery-condition check — never issue a safety certification.\n"
     "Use search_logs only to locate event times, never as a substitute for inspect_incident_window. "
-    "When a tool returns LiDAR or chart images, ground your statements in what they show."
+    "When a tool returns LiDAR or chart images, ground your statements in what they show.\n"
+    "Use verify_conclusion only when the user asks to verify the conclusion for a specific or "
+    "derived time window (a hypothesis window): unlike inspect_incident_window's static evidence, "
+    "it recompiles the spec evidence for that window. When you use it, state the window it used "
+    "and whether compile_info.window_mode was derived, declared, or override."
 )
 
 TOOL_DECLS = [
@@ -124,11 +136,75 @@ TOOL_DECLS = [
          "query": {"type": "string"}, "code": {"type": "string"}, "node": {"type": "string"},
          "start": {"type": "number"}, "end": {"type": "number"}},
          "required": []}},
+    {"name": "verify_conclusion",
+     "description": "Recompile the incident spec for a hypothesis window and verify it with the "
+                    "deterministic rules. Unlike inspect_incident_window (static evidence), this "
+                    "re-anchors evidence: by default the window is derived from the incident's own "
+                    "stop event (window_mode 'auto'); pass window_override [start, end] to "
+                    "investigate a specific window. Returns evidence_strength plus compile_info "
+                    "(window, window_mode, unavailable_signals, forced_placeholders).",
+     "parameters": {"type": "object", "properties": {
+         "conclusion_id": {"type": "string"},
+         "window_override": {"type": "array", "items": {"type": "number"}},
+         "window_mode": {"type": "string", "enum": ["auto", "declared"]}},
+         "required": ["conclusion_id"]}},
 ]
 
 
 class ToolError(Exception):
     pass
+
+
+def _abstract_logs(profile, logs):
+    """Map the exported incident's source-side event codes onto the abstract
+    EVENT_* codes the spec references, reusing the event mapping the topic
+    profile already declares (matcher value -> output_code). Logs that already
+    carry abstract EVENT_* codes (an extractor-produced neutral incident) pass
+    through unchanged. Builds an in-memory view for spec compilation only — the
+    served incident/ assets and the hand-authored annotations are untouched."""
+    out = []
+    for lg in logs:
+        code = str(lg.get("code", ""))
+        if code.startswith("EVENT_"):
+            out.append({"t": lg["t"], "level": lg.get("level", ""), "node": "",
+                        "code": code, "message": ""})
+            continue
+        for e in profile.get("events", {}).values():
+            m = e["matcher"]
+            src = str(lg.get(m.get("field", "code"), ""))
+            hit = src == m["value"] if m.get("op", "exact") == "exact" else m["value"] in src
+            if hit:
+                out.append({"t": lg["t"], "level": lg.get("level", ""), "node": "",
+                            "code": e["output_code"], "message": ""})
+                break
+    return out
+
+
+def run_verify_conclusion(inc, args):
+    """Compile the incident spec for a hypothesis window and verify with the
+    unchanged deterministic verifier. window_override wins; otherwise
+    window_mode 'auto' derives the window from the incident's own stop event
+    (declared-window fallback). Raises ValueError on bad input."""
+    cid = args.get("conclusion_id")
+    if not any(c["id"] == cid for c in SPEC["conclusions"]):
+        raise ValueError(f"unknown conclusion_id {cid!r}")
+    mode = args.get("window_mode", "auto")
+    if mode not in ("auto", "declared"):
+        raise ValueError("window_mode must be 'auto' or 'declared'")
+    wo = args.get("window_override")
+    if wo is not None:
+        if not (isinstance(wo, (list, tuple)) and len(wo) == 2
+                and all(isinstance(x, (int, float)) for x in wo)):
+            raise ValueError("window_override must be [start, end] numbers")
+        if wo[0] > wo[1]:
+            raise ValueError("window_override start must be <= end")
+        wo = (float(wo[0]), float(wo[1]))
+    view = inc.replace(logs=_abstract_logs(PROFILE, inc.logs))
+    ann = SP.compile_spec(SPEC, view, cid, window_mode=mode, window_override=wo)
+    ci = ann["compile_info"]
+    es = R.evidence_strength(view.replace(annotations=ann), cid, tuple(ci["window"]))
+    return {"conclusion_id": cid, "evidence_strength": es, "compile_info": ci,
+            "note": "Compiled from the incident spec at request time; deterministic verifier unchanged."}
 
 
 def run_tool(inc, name, args):
@@ -146,6 +222,8 @@ def run_tool(inc, name, args):
         if name == "search_logs":
             return R.search_logs(inc, query=args.get("query"), code=args.get("code"),
                                  node=args.get("node"), start=args.get("start"), end=args.get("end")), []
+        if name == "verify_conclusion":
+            return run_verify_conclusion(inc, args), []
         raise ToolError(f"unknown tool {name}")
     except ToolError:
         raise
