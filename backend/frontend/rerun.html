@@ -100,13 +100,13 @@
         if (j.event === "start") setStatus("Gemini online — investigating…");
         else if (j.event === "thinking") setStatus(`Thinking… (step ${j.step + 1})`);
         else if (j.event === "tool_call") setStatus(`Calling ${j.tool}${j.images ? ` · +${j.images} image(s)` : ""}…`);
-        else if (j.event === "fallback") setStatus(`Gemini unavailable (${j.reason}) — offline fallback…`);
+        else if (j.event === "fallback") setStatus(`Gemini unavailable (${j.reason}) — continuing deterministically…`);
       }
       function onResult(j) {
         if (j.history) HIST = j.history;
         $("#answer").innerHTML = fmtAnswer(j.answer || "(no answer)");
         $("#meta").textContent = `mode: ${j.mode || "—"} · model: ${j.model || "—"} · images: ${j.images_submitted || 0}`;
-        setStatus(j.mode === "online" ? "Online Gemini" : "Offline deterministic fallback");
+        setStatus(j.mode === "online" ? "Online — Gemini narration" : "Deterministic mode");
       }
       function handleSSE(block) {
         let ev = "message", data = "";

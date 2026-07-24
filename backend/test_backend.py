@@ -140,6 +140,7 @@ def main():
         # /investigate 离线
         inv = c.post("/investigate", json={"question": "Why did the robot stop?"}).json()
         chk("investigate 离线 used_gemini=False", inv.get("used_gemini") is False)
+        chk("investigate deterministic mode", inv.get("mode") == "deterministic")
         chk("investigate 引用根因+非安全认证", "obstacle" in inv["answer"].lower() and "not a safety certification" in inv["answer"].lower())
         chk("investigate 附图候选>0", len(inv.get("attached_images", [])) > 0)
 

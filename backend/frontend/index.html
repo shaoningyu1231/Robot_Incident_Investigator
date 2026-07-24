@@ -4,11 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Robot Incident Investigator</title>
-<!-- Roboto from Google Fonts; falls back to system-ui offline (no hard dependency). -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- No external font fetch: local-first page, system-ui font stack. -->
 <style>
-  /* Material Design 3 visual language — dark "Google/Gemini" theme. Tokens only, no component library. */
+  /* Material Design 3 visual language — dark theme. Tokens only, no component library. */
   :root{
     --bg:#0e0f11; --surface:#1c1d20; --surface-container:#26282c; --surface-hi:#303134;
     --ink:#e3e3e3; --ink-variant:#bdc1c6; --outline:#5f6368; --outline-soft:#33353a;
@@ -126,7 +124,7 @@
   <div class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4zm0 5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm0 12c-2 0-3.8-1-4.8-2.5.1-1.6 3.2-2.5 4.8-2.5s4.7.9 4.8 2.5C15.8 18 14 19 12 19z"/></svg></div>
   <div class="titles"><h1>Robot Incident Investigator</h1><span class="sub" id="scenario"></span></div>
   <span class="spacer"></span>
-  <span class="chip neutral" id="modeBadge"><span class="dot"></span>Gemini: …</span>
+  <span class="chip neutral" id="modeBadge"><span class="dot"></span>mode: …</span>
 </header>
 
 <main>
@@ -151,10 +149,10 @@
   </section>
 
   <div class="col">
-    <!-- Gemini Investigator -->
+    <!-- Investigator -->
     <section class="panel">
       <div class="phead">
-        <span class="pic" id="ic-invest"></span><h2>Gemini Investigator</h2>
+        <span class="pic" id="ic-invest"></span><h2>Investigator</h2>
         <span class="hint" id="turns"></span>
       </div>
       <textarea id="q" placeholder="Ask about the incident — e.g. why did the robot stop? / what must be satisfied before it can resume?"></textarea>
@@ -167,7 +165,7 @@
       </div>
       <div class="meta-line" id="imgcount"></div>
       <div class="stepper" id="tools" style="display:none"></div>
-      <div class="answer" id="answer">Ask a question to investigate. Online uses Gemini multimodal; if it is unavailable the agent falls back to a deterministic offline answer (the badge shows which).</div>
+      <div class="answer" id="answer">Ask a question to investigate. The deterministic tool layer computes the evidence either way; with an API key, Gemini narrates the investigation on top (the badge shows the mode).</div>
     </section>
 
     <!-- Evidence Workspace -->
@@ -268,10 +266,10 @@ async function boot(){
 function setBadge(kind){
   const b=$('#modeBadge');
   const set=(cls,txt)=>{ b.className='chip '+cls; b.innerHTML='<span class="dot"></span>'+txt; };
-  if(kind==='online') set('online','Online Gemini');
-  else if(kind==='offline') set('offline','Offline fallback');
-  else if(kind==='avail') set('avail','Gemini: available');
-  else set('offline','Gemini: no key → offline');
+  if(kind==='online') set('online','Online — Gemini narration');
+  else if(kind==='offline') set('offline','Deterministic mode');
+  else if(kind==='avail') set('avail','Gemini narration: available');
+  else set('offline','Deterministic mode (no API key)');
 }
 function setPlayBtn(){ $('#play').innerHTML = icon(playing?'pause':'play') + (playing?'Pause':'Play'); }
 
@@ -312,14 +310,14 @@ function onProgress(j){
     $('#tools').style.display=''; $('#tools').appendChild(stepItem(j));
     $('#answer').innerHTML=`<i>Calling <b>${j.tool}</b>${j.images?` · +${j.images} image${j.images>1?'s':''}`:''}</i>`;
   }
-  else if(j.event==='fallback'){ setBadge('offline'); $('#answer').innerHTML=`<i>Gemini unavailable (${j.reason}) — offline fallback…</i>`; }
+  else if(j.event==='fallback'){ setBadge('offline'); $('#answer').innerHTML=`<i>Gemini unavailable (${j.reason}) — continuing deterministically…</i>`; }
 }
 function onResult(j){
-  setBadge(j.mode==='online'?'online':'offline');
+  setBadge(j.mode==='online'?'online':'offline');   // mode 'deterministic' -> offline chip style
   if(j.history){ HIST=j.history; $('#turns').textContent=`turns: ${HIST.length/2} · follow-ups keep context`; }
   $('#answer').innerHTML=fmtAnswer(j.answer||'(no answer)');
   showSteps(j.trace||[]);                            // rebuild from final trace (also covers offline path)
-  if(j.mode==='offline'&&j.fallback_reason){
+  if(j.mode!=='online'&&j.fallback_reason){
     const c=document.createElement('div');c.className='step';c.innerHTML=`<span class="sdot">${icon('refresh')}</span><span>fallback: ${esc(j.fallback_reason)}</span>`;
     $('#tools').appendChild(c);
   }

@@ -6,7 +6,7 @@
 2. 返回 PNG image parts(images_submitted>0)
 3. 回答引用正确证据时间戳(供人工确认,脚本做关键字命中)
 4. 追问恢复条件,触发 check_recovery_readiness
-5. 确认真实在线调用(mode==online),未进入 offline fallback
+5. 确认真实在线调用(mode==online),未进入 deterministic mode
 运行: GEMINI_API_KEY=... <venv>/python3 backend/online_check.py
 """
 import os
