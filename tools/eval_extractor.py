@@ -26,6 +26,12 @@ disjoint windows, and verifying each individually must DISCRIMINATE — the firs
 (genuine obstacle stop) high/ok, the second (events without any obstacle
 observation or halt) low/ok. The list->verify flow must not confirm every window.
 
+Coalescing (repeated publishes): a fault republished as EVENT_OBSTACLE_STOP at
+10.6/10.8/11.0 must fold into ONE candidate under the spec's coalesce_window_s
+(kept-relative, like the extractor's deduplicate_window_s); with coalescing
+removed the same logs must yield three — proving the default-off behavior is
+unchanged and the spec value is what protects against candidate explosion.
+
 Generated assets are git-ignored (eval_build/).
 Run: <venv>/python3 tools/eval_extractor.py
 """
@@ -170,6 +176,22 @@ for cand, (cid, lvl, vd) in zip(cands, CAND_EXP):
     if not ok:
         print(f"    checks={es['checks']} missing={es['missing']}")
 print(f"--- {n_ok}/{len(CAND_EXP)} candidates verified independently ---")
+
+print("=== candidate coalescing (repeated stop publishes 10.6/10.8/11.0) ===")
+rep_logs = [{"t": t, "level": "WARN", "node": "", "code": "EVENT_OBSTACLE_STOP", "message": ""}
+            for t in (10.6, 10.8, 11.0)] + \
+           [{"t": 20.4, "level": "INFO", "node": "", "code": "EVENT_OBSTACLE_CLEAR", "message": ""}]
+rep = hero.replace(logs=rep_logs)
+n1 = len(SP.list_incident_candidates(SPEC, rep, CONC))
+c_ok = n1 == 1
+allok &= c_ok
+print(f"coalesce_window_s=2.0: repeated publishes -> 1 candidate {'PASS' if c_ok else 'FAIL'} (got {n1})")
+spec_off = json.loads(json.dumps(SPEC))
+next(c for c in spec_off["conclusions"] if c["id"] == CONC)["search_window_strategy"].pop("coalesce_window_s")
+n0 = len(SP.list_incident_candidates(spec_off, rep, CONC))
+c_ok = n0 == 3
+allok &= c_ok
+print(f"coalescing off (default):  same logs -> 3 candidates {'PASS' if c_ok else 'FAIL'} (got {n0})")
 
 inc = hero.replace(annotations=SP.compile_spec(SPEC, hero, CONC))
 rec_ok = True

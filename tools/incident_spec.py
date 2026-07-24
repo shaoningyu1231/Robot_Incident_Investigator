@@ -91,7 +91,13 @@ def list_incident_candidates(spec, inc, conclusion_id):
     occurrence of the conclusion's anchor event in the NEUTRAL logs, windowed by
     the spec's search_window_strategy. Discovery only — it never verifies; each
     candidate's window is verified individually (compile_spec window_override).
-    Long / multi-event recordings stop depending on 'the first event wins'."""
+    Long / multi-event recordings stop depending on 'the first event wins'.
+
+    coalesce_window_s (strategy field, default 0 = off): a repeated publish of
+    the same event within the window of the last KEPT candidate is folded into
+    it (same kept-relative semantics as the extractor's deduplicate_window_s);
+    the next occurrence beyond the window starts a new candidate. Protects the
+    agent from candidate explosion on noisy real logs that republish a fault."""
     conc = _conc(spec, conclusion_id)
     strat = conc.get("search_window_strategy")
     if not strat:
@@ -99,11 +105,16 @@ def list_incident_candidates(spec, inc, conclusion_id):
     if strat["kind"] != "around_log_event":
         raise ValueError(f"unknown search_window_strategy kind {strat['kind']}")
     kinds = {se.get("code"): se.get("kind") for se in spec.get("stateful_events", [])}
-    hits = sorted(lg["t"] for lg in inc.logs if lg.get("code") == strat["code"])
+    coalesce = float(strat.get("coalesce_window_s", 0.0))
+    kept = []
+    for t in sorted(lg["t"] for lg in inc.logs if lg.get("code") == strat["code"]):
+        if kept and t - kept[-1] <= coalesce + EPS:
+            continue
+        kept.append(t)
     return [{"candidate_id": f"cand_{i + 1}", "event_code": strat["code"], "event_t": t,
              "transition": kinds.get(strat["code"], "assert"),
              "window": [round(t - strat["pre_s"], 3), round(t + strat["post_s"], 3)]}
-            for i, t in enumerate(hits)]
+            for i, t in enumerate(kept)]
 
 
 def _first_true(metrics, name, op, thr, window, after_t=None, crossing=False, use_abs=False):
