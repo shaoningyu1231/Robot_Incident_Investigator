@@ -53,6 +53,9 @@ GEMINI_API_KEY=... python backend/online_check.py   # live Gemini acceptance -> 
 ```
 Online acceptance passed 6/6 across 5 consecutive runs (temperature 0 + constrained prompt).
 
+New here? [`docs/quickstart_ros1.md`](docs/quickstart_ros1.md) walks the three paths — synthetic demo,
+your own private ROS1 bag (local-only), and the optional Rerun view — in about ten minutes.
+
 ## Responsible AI / safety boundary
 The system **does not issue a safety certification**. Gemini investigates and explains;
 deterministic rules compute evidence strength and recovery-condition readiness. `evidence_strength`
