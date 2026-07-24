@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gates:
+    name: gates (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Extractor unit tests
+        run: python tools/test_extractor.py
+      - name: Canonical oracle (bags -> extract -> spec -> verifier)
+        run: python tools/eval_extractor.py
+      - name: Scenario discrimination eval
+        run: python tools/eval_scenarios.py
+      - name: Frozen hero assets + rules
+        run: python tools/validate_incident.py
+      - name: Backend HTTP/SSE integration tests
+        run: python backend/test_backend.py
+
+  guards:
+    name: freeze + privacy guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verifier freeze check
+        run: |
+          echo "0c622021f72fac9f8c58ac2cdc2f9dce4fa97423e11a46d354bf1aa1f617290b  tools/incident_rules.py" | sha256sum -c - || {
+            echo "::error file=tools/incident_rules.py::tools/incident_rules.py is the frozen deterministic verifier (rule-engine v1)."
+            echo "::error::Changes need strong justification and the full oracle green before and after (see CONTRIBUTING.md)."
+            echo "::error::If a change is approved, update the pinned sha256 in .github/workflows/ci.yml in the same PR."
+            exit 1
+          }
+
+      - name: Privacy path check (no private data in the tree)
+        run: |
+          # Real robot data, local profiles, keys, and internal docs must never be tracked.
+          FORBIDDEN='((^|/)(private_eval|sample_data|bag)/|\.local\.json$|\.bag$|\.db3$|\.mcap$|\.rrd$|\.key$|(^|/)\.gemini_key$|^(plan|progress|launch_posts|data_pipeline|non_sensitive|demo|runbook|schema|submission|requirement|slide)\.md$|\.pdf$)'
+          VIDEO='\.(mp4|mov|mkv|webm)$'
+          HITS=$( { git ls-files | grep -E "$FORBIDDEN" ; git ls-files | grep -iE "$VIDEO" ; } || true )
+          if [ -n "$HITS" ]; then
+            echo "::error::Tracked files violate the privacy boundary (see CONTRIBUTING.md):"
+            echo "$HITS"
+            exit 1
+          fi
+
+      - name: Dockerignore allowlist check
+        run: |
+          # The image build context must be allowlist-based: exclude everything,
+          # re-include only what the demo image needs. Guards against COPY . .
+          # baking private files (real profiles, bags, internal notes) into
+          # image layers pushed to a registry.
+          FIRST=$(grep -vE '^\s*(#|$)' .dockerignore | head -1)
+          if [ "$FIRST" != "*" ]; then
+            echo "::error file=.dockerignore::.dockerignore must start with '*' (allowlist mode); first effective line is '$FIRST'."
+            exit 1
+          fi
+          BAD=$(grep -E '^!' .dockerignore | grep -iE 'local\.json|private_eval|sample_data|(^|[!/])bag/|\.bag|\.key|gemini_key|plan\.md|progress\.md|launch_posts|schema\.md|runbook|non_sensitive' || true)
+          if [ -n "$BAD" ]; then
+            echo "::error file=.dockerignore::.dockerignore re-includes a private path:"
+            echo "$BAD"
+            exit 1
+          fi
