@@ -1,0 +1,91 @@
+{
+  "spec_version": "0.1",
+  "spec_id": "localization_jump",
+  "title": "Localization-jump safety stop",
+
+  "_about": "Second reusable incident rule (proves the spec layer is not obstacle-only). The robot stopped because its localization transform jumped: a TF discontinuity beyond threshold, followed by a stop event and a velocity halt. The extractor emits the CONTINUOUS per-sample jump magnitude (tf_jump_m); this spec owns the threshold. Frame names live in the topic mapping profile, never here. Same compiler, same unchanged verifier.",
+
+  "requires": {
+    "metrics": ["tf_jump_m", "actual_speed_mps"],
+    "log_codes": ["EVENT_LOCALIZATION_STOP", "EVENT_LOCALIZATION_CLEAR"]
+  },
+
+  "signals": {
+    "tf_jump": {
+      "type": "metric_threshold_crossing",
+      "modality": "metric",
+      "metric": "tf_jump_m",
+      "op": ">",
+      "threshold": 0.5,
+      "anchor_strategy": "first",
+      "_note": "Per-sample translation discontinuity of the localization transform. Normal motion between consecutive samples is ~v*dt (centimeters); a relocalization jump is an order of magnitude larger. Absent -> placeholder -> low."
+    },
+    "stop_event": {
+      "type": "log_event",
+      "modality": "log",
+      "code": "EVENT_LOCALIZATION_STOP",
+      "anchor_strategy": "first"
+    },
+    "velocity_halt": {
+      "type": "metric_threshold_crossing",
+      "modality": "metric",
+      "metric": "actual_speed_mps",
+      "op": "<=",
+      "threshold": 0.01,
+      "abs": true,
+      "anchor_strategy": "first_true_after:stop_event"
+    }
+  },
+
+  "conclusions": [
+    {
+      "id": "concl_localization_jump_stop",
+      "statement": "The robot stopped because its localization transform jumped beyond the safe threshold.",
+      "search_window": [9.5, 13.0],
+      "search_window_strategy": {
+        "kind": "around_log_event",
+        "code": "EVENT_LOCALIZATION_STOP",
+        "pre_s": 2.0,
+        "post_s": 3.0,
+        "coalesce_window_s": 2.0,
+        "fallback": "declared"
+      },
+      "required_signals": [
+        { "id": "tf_jump", "required": "always" },
+        { "id": "stop_event", "required": "always" },
+        { "id": "velocity_halt", "required": "always" }
+      ],
+      "temporal_checks": [
+        { "before": "tf_jump", "after": "stop_event", "min_delay_s": 0.0, "max_delay_s": 1.0 },
+        { "before": "stop_event", "after": "velocity_halt", "min_delay_s": 0.0, "max_delay_s": 1.5 }
+      ],
+      "metric_checks": [
+        { "signal": "tf_jump" },
+        { "signal": "velocity_halt" }
+      ]
+    }
+  ],
+
+  "stateful_events": [
+    { "code": "EVENT_LOCALIZATION_STOP", "kind": "assert", "clears": "EVENT_LOCALIZATION_CLEAR" },
+    { "code": "EVENT_LOCALIZATION_CLEAR", "kind": "clear" }
+  ],
+
+  "recovery": {
+    "conditions": [
+      {
+        "id": "rc_loc_stop_cleared",
+        "label": "Localization-stop event cleared",
+        "check": { "event_state": "EVENT_LOCALIZATION_STOP", "must_be": "cleared" }
+      }
+    ]
+  },
+
+  "expected": {
+    "_about": "Oracle for this spec: a TF jump followed by stop+halt must verify high/ok; the same stop+halt WITHOUT any TF jump must verify low/ok (the jump is required positive evidence, so the conclusion is not confirmable from the stop alone).",
+    "against": {
+      "tf_jump_stop": { "level": "high", "verdict": "ok" },
+      "tf_stop_no_jump": { "level": "low", "verdict": "ok" }
+    }
+  }
+}

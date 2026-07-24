@@ -12,7 +12,13 @@ scalars + abstract events only.
 
 Metrics: connection-filtered read; a topic may back several roles; explicit
 floor-bucket resampling with per-metric aggregation (front_min_range=min,
-scalar_field=last). metadata.resample records raw/valid/invalid/output + coverage.
+scalar_field=last, tf_jump=max — a single-sample jump must survive bucketing).
+metadata.resample records raw/valid/invalid/output + coverage.
+
+tf_jump: per-sample discontinuity of ONE parent->child transform in a
+tf2_msgs/msg/TFMessage stream — translation delta (output_metric) and optional
+yaw delta (yaw_output_metric) between consecutive samples. Frame names come from
+the profile (private-safe); thresholds live in the incident spec, not here.
 
 Events (unified schema): profile.events maps each ABSTRACT event to
   {source_role, matcher:{kind, ...}, transition: assert|clear, output_code, emit}
@@ -36,10 +42,13 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from rosbags.rosbag1 import Reader
-from rosbags.typesys import Stores, get_typestore
+from rosbags.typesys import Stores, get_types_from_msg, get_typestore
 
 TS = get_typestore(Stores.ROS1_NOETIC)
-DEFAULT_AGG = {"front_min_range": "min", "scalar_field": "last"}
+# tf2_msgs/TFMessage is absent from the stock ROS1 store; real bags carry it on /tf.
+TS.register(get_types_from_msg("geometry_msgs/TransformStamped[] transforms",
+                               "tf2_msgs/msg/TFMessage"))
+DEFAULT_AGG = {"front_min_range": "min", "scalar_field": "last", "tf_jump": "max"}
 MATCHER_KINDS = {"json_string_event", "rosout_text", "diagnostic_status"}
 BUCKET_EPS = 1e-6
 
@@ -64,6 +73,29 @@ def _front_min_range(ranges, angle_min, angle_inc, ex):
             if best is None or r < best:
                 best = r
     return best
+
+
+def _tf_jump(msg, ex, prev):
+    """Translation / yaw delta between consecutive samples of one parent->child
+    transform. Returns (d_translation_m, d_yaw_rad); (None, None) until two
+    samples of the matching transform have been seen."""
+    parent = ex["parent_frame"].lstrip("/")
+    child = ex["child_frame"].lstrip("/")
+    for tr in getattr(msg, "transforms", []):
+        if getattr(tr.header, "frame_id", "").lstrip("/") != parent \
+                or getattr(tr, "child_frame_id", "").lstrip("/") != child:
+            continue
+        tl = tr.transform.translation
+        q = tr.transform.rotation
+        yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+        last = prev.get("last")
+        prev["last"] = (float(tl.x), float(tl.y), float(tl.z), yaw)
+        if last is None:
+            return None, None
+        d = math.dist(last[:3], prev["last"][:3])
+        dyaw = abs(math.atan2(math.sin(yaw - last[3]), math.cos(yaw - last[3])))
+        return d, dyaw
+    return None, None
 
 
 def _aggregate(samples, how, center):
@@ -174,6 +206,7 @@ def run(bag_path, profile, out_dir):
     agg_of = {}
     logs = []
     t0 = t1 = None
+    tf_prev = defaultdict(dict)  # per-output-metric last transform (tf_jump state)
 
     with Reader(bag_path) as r:
         present = {c.topic for c in r.connections}
@@ -207,6 +240,13 @@ def run(bag_path, profile, out_dir):
                                              float(msg.angle_increment), ex)
                     elif ex["kind"] == "scalar_field":
                         v = _get_field(msg, ex["field"])
+                    elif ex["kind"] == "tf_jump":
+                        v, dyaw = _tf_jump(msg, ex, tf_prev[om])
+                        yom = ex.get("yaw_output_metric")
+                        if yom and dyaw is not None:
+                            agg_of[yom] = ex.get("yaw_aggregation", "max")
+                            raw_count[yom] += 1
+                            raw[yom].append((t, dyaw))
                     else:
                         v = None; warn("unsupported_extract_kind")
                 except Exception:

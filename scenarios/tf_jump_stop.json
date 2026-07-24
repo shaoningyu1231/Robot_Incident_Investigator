@@ -1,0 +1,34 @@
+{
+  "incident_id": "demo_tf_jump_stop_01",
+  "duration_s": 25.0,
+  "hz": 10,
+  "base_epoch_s": 1735689600,
+  "front_safety_m": 1.2,
+  "codes": { "stop": "DEMO_OBSTACLE_STOP_01", "clear": "DEMO_OBSTACLE_CLEAR_01" },
+  "times": {
+    "obst_appear": 10.0, "drop_end": 10.4, "stop": 10.8, "halt": 11.5,
+    "obst_remove": 20.2, "clear": 15.0, "rise_end": 20.8, "resume_end": 21.1
+  },
+  "evidence_t": { "lidar": 10.4, "dist": 10.5, "stop": 10.8, "halt": 11.5 },
+  "rules": {
+    "corrob_max_skew_s": 0.2, "temporal_dist_stop_max_s": 0.3,
+    "temporal_stop_halt_max_s": 1.0, "recovery_dur_s": 1.0, "halt_speed_eps": 0.01
+  },
+  "values": { "planner_v": 0.80, "actual_v": 0.79, "front_nominal_m": 2.6, "front_obstacle_m": 0.74 },
+  "frames": ["demo_map", "demo_odom", "demo_base_link"],
+  "shape": "planned",
+  "planner_decel": { "start": 10.8, "end": 11.5 },
+  "tf": { "jump_t": 10.5, "jump_m": 1.5, "jump_yaw_rad": 0.4 },
+  "labels": { "lidar": "clear", "dist": "clear" },
+  "events": [
+    { "t": 10.8, "code": "DEMO_LOC_STOP_01", "kind": "assert" },
+    { "t": 15.0, "code": "DEMO_LOC_CLEAR_01", "kind": "clear" }
+  ],
+  "doc": {
+    "title": "Synthetic localization-jump stop",
+    "description": "Fully synthetic; does not reproduce any real incident or bag.",
+    "scenario_label": "Localization jump — the map->odom transform jumps 1.5 m, a localization stop event fires, and the robot halts. Front zone stays clear (not an obstacle stop).",
+    "root_cause": "The localization transform jumped beyond the safe threshold; the robot commanded a controlled stop with the front zone clear."
+  },
+  "expected": { "hypothesis": "concl_obstacle_stop", "evidence_strength": "low", "verdict": "ok" }
+}

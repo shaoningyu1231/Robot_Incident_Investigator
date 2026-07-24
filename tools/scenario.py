@@ -72,6 +72,8 @@ LABELS = _C.get("labels", {"lidar": "obstacle", "dist": "obstacle"})  # semantic
 _pd = _C.get("planner_decel", {})                 # planned-stop deceleration window
 PLANNER_DECEL_START = _pd.get("start", T_OBST_APPEAR)
 PLANNER_DECEL_END = _pd.get("end", T_DROP_END)
+TF_CFG = _C.get("tf")                             # optional: publish /demo/tf; absent -> no tf
+                                                  # topic (hero bag stays byte-identical)
 
 
 def _lerp(a, b, x0, x1, t):
@@ -131,6 +133,18 @@ def safety_state(t):
     if SHAPE == "obstacle":
         return "STOP" if T_STOP <= t < T_CLEAR else "OK"
     return "OK"                                   # planned / sensor_disagreement: safety never engages
+
+
+def tf_pose(t):
+    """(x, y, yaw) of the demo localization transform (map -> odom). Smooth
+    motion at the nominal speed; a config-declared jump adds a step offset at
+    jump_t — a localization discontinuity, not physical motion."""
+    x = ACTUAL_V * t
+    yaw = 0.0
+    if TF_CFG and t >= float(TF_CFG.get("jump_t", 0.0)) - 1e-9:
+        x += float(TF_CFG.get("jump_m", 0.0))
+        yaw += float(TF_CFG.get("jump_yaw_rad", 0.0))
+    return x, 0.0, yaw
 
 
 def obstacle_present(t):

@@ -11,12 +11,14 @@ from pathlib import Path
 
 import numpy as np
 from rosbags.rosbag1 import Writer
-from rosbags.typesys import Stores, get_typestore
+from rosbags.typesys import Stores, get_types_from_msg, get_typestore
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import scenario as S
 
 TS = get_typestore(Stores.ROS1_NOETIC)
+TS.register(get_types_from_msg("geometry_msgs/TransformStamped[] transforms",
+                               "tf2_msgs/msg/TFMessage"))
 T = TS.types
 Header = T["std_msgs/msg/Header"]
 Time = T["builtin_interfaces/msg/Time"]
@@ -31,6 +33,9 @@ TwistWithCov = T["geometry_msgs/msg/TwistWithCovariance"]
 Odometry = T["nav_msgs/msg/Odometry"]
 Float32 = T["std_msgs/msg/Float32"]
 String = T["std_msgs/msg/String"]
+TransformStamped = T["geometry_msgs/msg/TransformStamped"]
+Transform = T["geometry_msgs/msg/Transform"]
+TFMessage = T["tf2_msgs/msg/TFMessage"]
 
 RNG = np.random.default_rng(42)  # 固定种子,可复现
 
@@ -71,6 +76,15 @@ def make_twist(v):
                  angular=Vector3(x=0.0, y=0.0, z=0.0))
 
 
+def make_tf(t, seq):
+    x, y, yaw = S.tf_pose(t)
+    return TFMessage(transforms=[TransformStamped(
+        header=header(t, seq, S.FRAMES[0]), child_frame_id=S.FRAMES[1],
+        transform=Transform(translation=Vector3(x=float(x), y=float(y), z=0.0),
+                            rotation=Quaternion(x=0.0, y=0.0, z=math.sin(yaw / 2.0),
+                                                w=math.cos(yaw / 2.0))))])
+
+
 def make_odom(t, seq, v):
     cov = np.zeros(36, dtype=np.float64)
     pose = PoseWithCov(pose=Pose(position=Point(x=0.0, y=0.0, z=0.0),
@@ -97,6 +111,8 @@ def main():
         "/demo/safety_state": "std_msgs/msg/String",
         "/demo/error_events": "std_msgs/msg/String",
     }
+    if S.TF_CFG:                       # tf only when the scenario declares it
+        topics["/demo/tf"] = "tf2_msgs/msg/TFMessage"
 
     with Writer(out) as w:
         conn = {tp: w.add_connection(tp, mt, typestore=TS) for tp, mt in topics.items()}
@@ -112,6 +128,9 @@ def main():
                     TS.serialize_ros1(make_odom(t, seq, S.actual_speed(t)), topics["/demo/odom"]))
             w.write(conn["/demo/safety_state"], ns(t),
                     TS.serialize_ros1(String(data=S.safety_state(t)), topics["/demo/safety_state"]))
+            if S.TF_CFG:
+                w.write(conn["/demo/tf"], ns(t),
+                        TS.serialize_ros1(make_tf(t, seq), topics["/demo/tf"]))
         # events from scenario config (obstacle: assert/clear pair; planned: none)
         for ev in S.EVENTS:
             payload = json.dumps({"code": ev["code"], "kind": ev["kind"]})

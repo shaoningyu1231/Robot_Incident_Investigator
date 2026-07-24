@@ -54,7 +54,14 @@
     },
     "tf": {
       "topic": "/tf",
-      "msgtype": "tf2_msgs/msg/TFMessage"
+      "msgtype": "tf2_msgs/msg/TFMessage",
+      "extract": {
+        "kind": "tf_jump",
+        "parent_frame": "map",
+        "child_frame": "odom",
+        "output_metric": "tf_jump_m",
+        "yaw_output_metric": "tf_yaw_jump_rad"
+      }
     }
   },
   "events": {
