@@ -40,7 +40,7 @@ jobs:
 
       - name: Verifier freeze check
         run: |
-          echo "0c622021f72fac9f8c58ac2cdc2f9dce4fa97423e11a46d354bf1aa1f617290b  tools/incident_rules.py" | sha256sum -c - || {
+          echo "dafb5376119c914b35380736ccecd4f26c48034f1f3c75cb251c4af8ac855d07  tools/incident_rules.py" | sha256sum -c - || {
             echo "::error file=tools/incident_rules.py::tools/incident_rules.py is the frozen deterministic verifier (rule-engine v1)."
             echo "::error::Changes need strong justification and the full oracle green before and after (see CONTRIBUTING.md)."
             echo "::error::If a change is approved, update the pinned sha256 in .github/workflows/ci.yml in the same PR."

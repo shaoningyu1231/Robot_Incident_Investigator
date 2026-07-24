@@ -1,7 +1,14 @@
-"""事故调查的确定性规则核心 —— validator 与 FastAPI 后端共用同一实现。
+"""Deterministic rule core for incident investigation — the validator and the
+backend share this single implementation.
 
-只读 incident/ 下的合成资产。所有 evidence_strength / recovery / inspect 逻辑都在这里,
-不在别处复制。规则细节见 ../schema.md。
+Reads only the synthetic assets under incident/. All evidence_strength /
+recovery / inspect logic lives here and is duplicated nowhere else.
+
+This module is rule-engine v1: frozen by policy and pinned by a sha256 check in
+CI (.github/workflows/ci.yml) — changes need strong justification and the full
+oracle green before and after (see CONTRIBUTING.md). Spec semantics and the
+compiled-annotations contract are documented in docs/incident_spec.md and
+docs/topic_mapping.md.
 """
 from __future__ import annotations
 
@@ -40,7 +47,7 @@ class Incident:
         return dataclasses.replace(self, **kw)
 
 
-# ---------- 基础 ----------
+# ---------- basics ----------
 def metric_at(inc, name, t):
     m = inc.metrics_by_t.get(round(t, 1))
     return None if m is None else m.get(name)
@@ -53,7 +60,7 @@ def infer_dt(metrics_by_t):
 
 
 def asset_exists(inc, ev):
-    """按 modality 核对证据对应的实际资产是否存在。"""
+    """Check that the evidence's backing asset actually exists, per modality."""
     ref = ev.get("ref", "")
     if ref.startswith("lidar_frames/") or ref.startswith("charts/"):
         if not (inc.dir / ref).exists():
@@ -277,7 +284,7 @@ def inspect_incident_window(inc, start, end, modalities=None, conclusion_id=None
     return result
 
 
-# ---------- 资产完整性(启动/校验共用)----------
+# ---------- asset integrity (shared by startup / validation) ----------
 def integrity_checks(inc):
     d = inc.dir
     checks = []
