@@ -37,6 +37,7 @@ backend/static/rerun/
 .gemini_key
 
 # Internal / collaboration docs and parked experiments — kept locally, not published
+experiments/
 plan.md
 progress.md
 launch_posts.md

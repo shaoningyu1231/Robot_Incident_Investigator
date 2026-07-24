@@ -64,12 +64,15 @@ the real names go to a git-ignored local file):
 python tools/private_eval_real_bag.py --bag /path/your.bag --out private_eval/case_001
 ```
 
-Map your topics onto the neutral roles. Start from the committed generic
-example and fill it with real names from `topic_candidates.local.txt`:
+Map your topics onto the neutral roles. The discovery step already wrote a
+schema-valid skeleton pre-filled by msgtype heuristics (every pick is marked
+provisional — review each one against `topic_candidates.local.txt`):
 
 ```
-cp profiles/generic_ros1.example.json private_eval/case_001/topic_mapping.local.json
+cp private_eval/case_001/topic_mapping.skeleton.local.json private_eval/case_001/topic_mapping.local.json
 ```
+
+(Or start from the committed `profiles/generic_ros1.example.json` instead.)
 
 Edit the copy locally: real topic names, msgtypes, event matchers (map your
 robot's real stop/clear codes or log lines to abstract `EVENT_*` codes), and —
@@ -124,9 +127,11 @@ PORT=8000 python backend/app.py      # then open http://localhost:8000/rerun
   the verdict drops toward `low`. The synthetic demo itself shows one (the hero
   bag has no tf topic). Fix the topic name in your local profile if the topic
   should exist.
-- `unsupported_msgtype` / `deserialize_failed` warnings — the role's declared
-  `msgtype` does not match the bag, or the message cannot be decoded. Check the
-  msgtype column in `topic_candidates.local.txt`.
+- `msgtype_mismatch` / `deserialize_failed` warnings — the role's declared
+  `msgtype` does not match what the bag actually carries on that topic, or the
+  message cannot be decoded. Check the msgtype column in
+  `topic_candidates.local.txt`. A mismatch is warn-only (decoding uses the bag's
+  actual type), but it usually means the role points at the wrong topic.
 - `list_incident_candidates count >= 1` fails — no abstract stop event was
   derived, so your event matchers did not match anything. Check the matcher
   `kind` / `op` / `value` against your real stop log line or code, and remember
